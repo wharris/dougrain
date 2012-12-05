@@ -22,7 +22,7 @@ class ParseLinksTest(unittest.TestCase):
             "_links": {
                 "self": {"href": "dougrain"},
                 "next": {
-                    "href": "http://github.com/wharris/esmre",
+                    "href": "http://localhost/wharris/esmre",
                     "label": "Next"
                 },
                 "parent": {"href": "/wharris/"},
@@ -31,14 +31,14 @@ class ParseLinksTest(unittest.TestCase):
                     {"href": "/bar"}
                 ],
             }
-        }, relative_to_url="http://github.com/wharris/dougrain")
+        }, relative_to_url="http://localhost/wharris/dougrain")
 
     def testLoadsSingleLinkHref(self):
-        self.assertEquals("http://github.com/wharris/esmre",
+        self.assertEquals("http://localhost/wharris/esmre",
                           self.doc.links["next"].href)
 
     def testLoadsSingleLinkURL(self):
-        self.assertEquals("http://github.com/wharris/esmre",
+        self.assertEquals("http://localhost/wharris/esmre",
                           self.doc.links["next"].url)
 
     def testLoadsRelativeURLHref(self):
@@ -46,12 +46,12 @@ class ParseLinksTest(unittest.TestCase):
                           self.doc.links["parent"].href)
 
     def testAbsolutesRelativeURL(self):
-        self.assertEquals("http://github.com/wharris/",
+        self.assertEquals("http://localhost/wharris/",
                           self.doc.links["parent"].url)
 
     def testLoadsSelfAsLinkAndAttribute(self):
         self.assertEquals("dougrain", self.doc.links["self"].href)
-        self.assertEquals("http://github.com/wharris/dougrain",
+        self.assertEquals("http://localhost/wharris/dougrain",
                           self.doc.links["self"].url)
 
         self.assertEquals(self.doc.links["self"].url, self.doc.url)
