@@ -1,0 +1,2 @@
+#!/bin/sh
+watchmedo shell-command --command='clear;nosetests' --ignore-pattern="*.py*"
