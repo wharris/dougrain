@@ -66,6 +66,47 @@ class ParseLinksTest(unittest.TestCase):
                           [link.href for link in self.doc.links['images']])
 
 
+class ParseEmbeddedObjectsTest(unittest.TestCase):
+    def setUp(self):
+        self.doc = dougrain.from_json(
+            {
+                "_embedded": {
+                    "foo": {
+                        "name": "Foo",
+                        "size": 88888888
+                    },
+                    "bar": [
+                        {
+                            "title": "Bar 1"
+                        },
+                        {
+                            "title": "Bar 2"
+                        }
+                    ],
+                    "bundy": {
+                        "_links": {
+                            "next": {"href": "/people/2"}
+                        }
+                    }
+                }
+            },
+            relative_to_url="http://localhost/people/"
+        )
+
+    def testLoadsSingleEmbeddedObject(self):
+        foo = self.doc.embedded["foo"]
+        self.assertEquals("Foo", foo.name)
+        self.assertEquals(88888888, foo.size)
+
+    def testLoadsArrayOfEmbeddedObjects(self):
+        self.assertEquals(["Bar 1", "Bar 2"],
+                          [bar.title for bar in self.doc.embedded['bar']])
+
+    def testLoadsLinksInEmbeddedObject(self):
+        link = self.doc.embedded["bundy"].links["next"]
+        self.assertEquals("/people/2", link.href)
+        self.assertEquals("http://localhost/people/2", link.url)
+
 
 if __name__ == '__main__':
     unittest.main()
