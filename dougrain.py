@@ -1,8 +1,10 @@
 #!/usr/bin/python
 import urlparse
+import curie
 
 class Document(object):
-    pass
+    def expand_curie(self, link):
+        return self.curie.expand(link)
 
 def from_json(o, relative_to_url=None):
     if isinstance(o, list):
@@ -29,10 +31,17 @@ def from_json(o, relative_to_url=None):
     if 'self' in result.links:
         result.url = result.links['self'].url
 
+    result.curie = curie.CurieCollection(relative_to_url)
+    curies = result.links.get('curie', [])
+    if not isinstance(curies, list):
+        curies = [curies]
+    for curie_dict in curies:
+        result.curie[curie_dict.name] = curie_dict.href
+
     result.embedded = {}
     for key, value in o.get("_embedded", {}).iteritems():
         result.embedded[key] = from_json(value, relative_to_url)
-        
+
 
 
 

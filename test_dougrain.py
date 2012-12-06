@@ -108,5 +108,30 @@ class ParseEmbeddedObjectsTest(unittest.TestCase):
         self.assertEquals("http://localhost/people/2", link.url)
 
 
+class CurieExpansionTest(unittest.TestCase):
+    def setUp(self):
+        self.doc = dougrain.from_json(
+            {
+                '_links': {
+                    'curie': [
+                        {
+                            'href': 'http://localhost/roles/',
+                            'name': 'role'
+                        },
+                        {
+                            'href': 'http://localhost/images/',
+                            'name': 'image'
+                        }
+                    ]
+                }
+            }
+        )
+
+    def testExposesCurieCollection(self):
+        self.assertEquals("http://localhost/roles/category",
+                          self.doc.expand_curie('role:category'))
+
+
+
 if __name__ == '__main__':
     unittest.main()
