@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import urlparse
 import curie
+import link
 
 class Document(object):
     def expand_curie(self, link):
@@ -11,11 +12,7 @@ def from_json(o, relative_to_url=None, parent_curie=None):
         return map(lambda x: from_json(x, relative_to_url), o)
 
     def link_from_json(item):
-        link = Document()
-        link.__dict__.update(item)
-        if relative_to_url is not None:
-            link.url = urlparse.urljoin(relative_to_url, link.href)
-        return link
+        return link.Link(item, relative_to_url)
 
     result = Document()
     result.attrs = o
