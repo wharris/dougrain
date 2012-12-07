@@ -5,8 +5,8 @@ import curie
 class CurieTest(unittest.TestCase):
     def setUp(self):
         self.curies = curie.CurieCollection("http://localhost/api/prodcuts/1")
-        self.curies['role'] = "http://localhost/roles/"
-        self.curies['spec'] = "/specifications/"
+        self.curies['role'] = "http://localhost/roles/{rel}"
+        self.curies['spec'] = "/specifications/{rel}"
 
     def testExpandsAbsoluteCurie(self):
         self.assertEquals("http://localhost/roles/host",

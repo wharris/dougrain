@@ -115,8 +115,9 @@ class CurieExpansionTest(unittest.TestCase):
                 '_links': {
                     'curie': [
                         {
-                            'href': "http://localhost/roles/",
-                            'name': 'role'
+                            'href': "http://localhost/roles/{rel}",
+                            'name': 'role',
+                            'templated': True
                         },
                         {
                             'href': "http://localhost/images/",
@@ -130,8 +131,9 @@ class CurieExpansionTest(unittest.TestCase):
                         '_links': {
                             'curie': [
                                 {
-                                    'href': "http://localhost/dimension/",
-                                    'name': 'dim'
+                                    'href': "http://localhost/dimension/{rel}",
+                                    'name': 'dim',
+                                    'templated': True
                                 }
                             ]
                         }
@@ -140,8 +142,9 @@ class CurieExpansionTest(unittest.TestCase):
                         '_links': {
                             'curie': [
                                 {
-                                    'href': "http://localhost/imagefiles/",
-                                    'name': 'image'
+                                    'href': "http://localhost/imagefiles/{rel}",
+                                    'name': 'image',
+                                    'templated': True
                                 }
                             ]
                         }

@@ -16,5 +16,5 @@ class CurieCollection(dict):
         if key not in self:
             return link
 
-        base = urlparse.urljoin(self.relative_to_url, self[key])
-        return urlparse.urljoin(base, value)
+        return urlparse.urljoin(self.relative_to_url,
+                                self[key].replace("{rel}", value))
