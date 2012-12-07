@@ -6,7 +6,7 @@ class Document(object):
     def expand_curie(self, link):
         return self.curie.expand(link)
 
-def from_json(o, relative_to_url=None):
+def from_json(o, relative_to_url=None, parent_curie=None):
     if isinstance(o, list):
         return map(lambda x: from_json(x, relative_to_url), o)
 
@@ -32,6 +32,9 @@ def from_json(o, relative_to_url=None):
         result.url = result.links['self'].url
 
     result.curie = curie.CurieCollection(relative_to_url)
+    if parent_curie is not None:
+        result.curie.update(parent_curie)
+
     curies = result.links.get('curie', [])
     if not isinstance(curies, list):
         curies = [curies]
@@ -40,7 +43,9 @@ def from_json(o, relative_to_url=None):
 
     result.embedded = {}
     for key, value in o.get("_embedded", {}).iteritems():
-        result.embedded[key] = from_json(value, relative_to_url)
+        result.embedded[key] = from_json(value,
+                                         relative_to_url,
+                                         result.curie)
 
 
 

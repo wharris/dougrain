@@ -115,14 +115,37 @@ class CurieExpansionTest(unittest.TestCase):
                 '_links': {
                     'curie': [
                         {
-                            'href': 'http://localhost/roles/',
+                            'href': "http://localhost/roles/",
                             'name': 'role'
                         },
                         {
-                            'href': 'http://localhost/images/',
+                            'href': "http://localhost/images/",
                             'name': 'image'
                         }
-                    ]
+                    ],
+                    'role:host': {'href': "/hosts/1"}
+                },
+                '_embedded': {
+                    'role:sizing': {
+                        '_links': {
+                            'curie': [
+                                {
+                                    'href': "http://localhost/dimension/",
+                                    'name': 'dim'
+                                }
+                            ]
+                        }
+                    },
+                    'role:coloring': {
+                        '_links': {
+                            'curie': [
+                                {
+                                    'href': "http://localhost/imagefiles/",
+                                    'name': 'image'
+                                }
+                            ]
+                        }
+                    },
                 }
             }
         )
@@ -130,6 +153,28 @@ class CurieExpansionTest(unittest.TestCase):
     def testExposesCurieCollection(self):
         self.assertEquals("http://localhost/roles/category",
                           self.doc.expand_curie('role:category'))
+
+    def testEmbeddedObjectHasParentCuries(self):
+        sizing_doc = self.doc.embedded['role:sizing']
+        self.assertEquals("http://localhost/roles/host",
+                          sizing_doc.expand_curie('role:host'))
+
+    def testParentObjectDoesNotHaveEmbeddedCuried(self):
+        self.assertEquals('dim:weight', self.doc.expand_curie('dim:weight'))
+
+    def testEmbeddedObjectExtendsParentCuries(self):
+        sizing_doc = self.doc.embedded['role:sizing']
+        self.assertEquals("http://localhost/dimension/weight",
+                          sizing_doc.expand_curie('dim:weight'))
+
+    def testEmbeddedObjectCurieOverridesParentCurie(self):
+        coloring_doc = self.doc.embedded['role:coloring']
+        self.assertEquals("http://localhost/imagefiles/photo",
+                          coloring_doc.expand_curie('image:photo'))
+
+
+
+
 
 
 
