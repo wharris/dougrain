@@ -13,19 +13,13 @@ class Document(object):
         if isinstance(o, list):
             return map(lambda x: cls.from_object(x, relative_to_url), o)
 
-        def link_from_json(item):
-            return link.Link(item, relative_to_url)
-
         result = Document()
         result.attrs = o
         result.__dict__.update(o)
         result.links = {}
 
         for key, value in o.get("_links", {}).iteritems():
-            if isinstance(value, list):
-                result.links[key] = map(link_from_json, value)
-            else:
-                result.links[key] = link_from_json(value)
+            result.links[key] = link.Link.from_object(value, relative_to_url)
 
         if 'self' in result.links:
             result.url = result.links['self'].url
