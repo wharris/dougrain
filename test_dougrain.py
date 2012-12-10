@@ -5,7 +5,7 @@ import dougrain
 
 class ParseSimpleTest(unittest.TestCase):
     def setUp(self):
-        self.doc = dougrain.from_json({"name": "David Bowman"})
+        self.doc = dougrain.Document.from_object({"name": "David Bowman"})
 
     def testParseSimple(self):
         self.assertEquals(self.doc.name, "David Bowman")
@@ -18,7 +18,7 @@ class ParseSimpleTest(unittest.TestCase):
 
 class ParseLinksTest(unittest.TestCase):
     def setUp(self):
-        self.doc = dougrain.from_json({
+        self.doc = dougrain.Document.from_object({
             "_links": {
                 "self": {"href": "dougrain"},
                 "next": {
@@ -68,7 +68,7 @@ class ParseLinksTest(unittest.TestCase):
 
 class ParseEmbeddedObjectsTest(unittest.TestCase):
     def setUp(self):
-        self.doc = dougrain.from_json(
+        self.doc = dougrain.Document.from_object(
             {
                 "_embedded": {
                     "foo": {
@@ -110,7 +110,7 @@ class ParseEmbeddedObjectsTest(unittest.TestCase):
 
 class CurieExpansionTest(unittest.TestCase):
     def setUp(self):
-        self.doc = dougrain.from_json(
+        self.doc = dougrain.Document.from_object(
             {
                 '_links': {
                     'curie': [
