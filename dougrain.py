@@ -4,6 +4,33 @@ import curie
 import link
 
 class Document(object):
+    def __init__(self, o, relative_to_url, parent_curie=None):
+        self.attrs = o
+        self.__dict__.update(o)
+        self.links = {}
+
+        for key, value in o.get("_links", {}).iteritems():
+            self.links[key] = link.Link.from_object(value, relative_to_url)
+
+        if 'self' in self.links:
+            self.url = self.links['self'].url
+
+        self.curie = curie.CurieCollection(relative_to_url)
+        if parent_curie is not None:
+            self.curie.update(parent_curie)
+
+        curies = self.links.get('curie', [])
+        if not isinstance(curies, list):
+            curies = [curies]
+        for curie_dict in curies:
+            self.curie[curie_dict.name] = curie_dict.href
+
+        self.embedded = {}
+        for key, value in o.get("_embedded", {}).iteritems():
+            self.embedded[key] = self.__class__.from_object(value,
+                                                            relative_to_url,
+                                                            self.curie)
+
     def expand_curie(self, link):
         return self.curie.expand(link)
 
@@ -13,32 +40,7 @@ class Document(object):
         if isinstance(o, list):
             return map(lambda x: cls.from_object(x, relative_to_url), o)
 
-        result = Document()
-        result.attrs = o
-        result.__dict__.update(o)
-        result.links = {}
+        return cls(o, relative_to_url, parent_curie)
 
-        for key, value in o.get("_links", {}).iteritems():
-            result.links[key] = link.Link.from_object(value, relative_to_url)
 
-        if 'self' in result.links:
-            result.url = result.links['self'].url
-
-        result.curie = curie.CurieCollection(relative_to_url)
-        if parent_curie is not None:
-            result.curie.update(parent_curie)
-
-        curies = result.links.get('curie', [])
-        if not isinstance(curies, list):
-            curies = [curies]
-        for curie_dict in curies:
-            result.curie[curie_dict.name] = curie_dict.href
-
-        result.embedded = {}
-        for key, value in o.get("_embedded", {}).iteritems():
-            result.embedded[key] = cls.from_object(value,
-                                                   relative_to_url,
-                                                   result.curie)
-
-        return result
 
