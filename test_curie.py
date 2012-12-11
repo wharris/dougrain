@@ -4,7 +4,7 @@ import curie
 
 class CurieTest(unittest.TestCase):
     def setUp(self):
-        self.curies = curie.CurieCollection("http://localhost/api/prodcuts/1")
+        self.curies = curie.CurieCollection("http://localhost/api/products/1")
         self.curies['role'] = "http://localhost/roles/{rel}"
         self.curies['spec'] = "/specifications/{rel}"
 
