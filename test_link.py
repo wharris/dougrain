@@ -58,5 +58,29 @@ class TestParseAdditionalAttributes(unittest.TestCase):
         self.assertEquals("Bar", self.link.label)
 
 
+class TestExpandTemplatedLink(unittest.TestCase):
+    def setUp(self):
+        self.link = link.Link(
+            {
+                'href': "/foo/{arg1}",
+                'templated': True
+            },
+            "http://localhost/"
+        )
+
+    def testHasArgs(self):
+        self.assertEquals(["arg1"], self.link.arguments)
+
+    def testSubstituteNoArgs(self):
+        self.assertEquals("http://localhost/foo/", self.link.url)
+
+    def testSubstituteArg(self):
+        self.assertEquals("http://localhost/foo/1-bar",
+                          self.link.url_with(arg1="1-bar"))
+
+    def testPreservesTemplate(self):
+        self.assertEquals("http://localhost/foo/{arg1}", self.link.template)
+
+
 if __name__ == '__main__':
     unittest.main()

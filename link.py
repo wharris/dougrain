@@ -1,20 +1,35 @@
 #!/usr/bin/python
 import urlparse
+import re
 
 class Link(object):
     def __init__(self, json_object, relative_to_url):
         self.href = json_object['href']
-
-        if relative_to_url is None:
-            self.url = self.href
-        else:
-            self.url = urlparse.urljoin(relative_to_url, self.href)
 
         if 'name' in json_object:
             self.name = json_object['name']
 
         if 'label' in json_object:
             self.label = json_object['label']
+
+        self.arguments = re.findall(r'{([^}]+)}', self.href)
+
+        if relative_to_url is None:
+            self.url = self.href
+        else:
+            self.url = urlparse.urljoin(relative_to_url, self.href)
+
+        self.template = self.url
+
+        self.url = self.url_with()
+
+    def url_with(self, **kwargs):
+        result = self.template
+
+        for arg in self.arguments:
+            result = result.replace("{%s}" % arg, kwargs.get(arg, ''))
+
+        return result
 
     @classmethod
     def from_object(cls, o, relative_to_url):
