@@ -2,9 +2,6 @@
 import urlparse
 
 class CurieCollection(dict):
-    def __init__(self, relative_to_url):
-        self.relative_to_url = relative_to_url
-
     def expand(self, link):
         terms = link.split(':')
 
@@ -16,5 +13,4 @@ class CurieCollection(dict):
         if key not in self:
             return link
 
-        return urlparse.urljoin(self.relative_to_url,
-                                self[key].replace("{rel}", value))
+        return self[key].url(rel=value)

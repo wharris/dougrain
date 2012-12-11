@@ -13,17 +13,18 @@ class Document(object):
             self.links[key] = link.Link.from_object(value, relative_to_url)
 
         if 'self' in self.links:
-            self.url = self.links['self'].url
+            self.url = self.links['self'].url()
 
-        self.curie = curie.CurieCollection(relative_to_url)
+        self.curie = curie.CurieCollection()
         if parent_curie is not None:
             self.curie.update(parent_curie)
 
         curies = self.links.get('curie', [])
         if not isinstance(curies, list):
             curies = [curies]
-        for curie_dict in curies:
-            self.curie[curie_dict.name] = curie_dict.href
+
+        for curie_link in curies:
+            self.curie[curie_link.name] = curie_link
 
         self.embedded = {}
         for key, value in o.get("_embedded", {}).iteritems():

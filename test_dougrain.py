@@ -39,7 +39,7 @@ class ParseLinksTest(unittest.TestCase):
 
     def testLoadsSingleLinkURL(self):
         self.assertEquals("http://localhost/wharris/esmre",
-                          self.doc.links["next"].url)
+                          self.doc.links["next"].url())
 
     def testLoadsRelativeURLHref(self):
         self.assertEquals("/wharris/",
@@ -47,14 +47,14 @@ class ParseLinksTest(unittest.TestCase):
 
     def testAbsolutesRelativeURL(self):
         self.assertEquals("http://localhost/wharris/",
-                          self.doc.links["parent"].url)
+                          self.doc.links["parent"].url())
 
     def testLoadsSelfAsLinkAndAttribute(self):
         self.assertEquals("dougrain", self.doc.links["self"].href)
         self.assertEquals("http://localhost/wharris/dougrain",
-                          self.doc.links["self"].url)
+                          self.doc.links["self"].url())
 
-        self.assertEquals(self.doc.links["self"].url, self.doc.url)
+        self.assertEquals(self.doc.links["self"].url(), self.doc.url)
 
     def testLoadsLabel(self):
         self.assertEquals("Next", self.doc.links["next"].label)
@@ -105,7 +105,7 @@ class ParseEmbeddedObjectsTest(unittest.TestCase):
     def testLoadsLinksInEmbeddedObject(self):
         link = self.doc.embedded["bundy"].links["next"]
         self.assertEquals("/people/2", link.href)
-        self.assertEquals("http://localhost/people/2", link.url)
+        self.assertEquals("http://localhost/people/2", link.url())
 
 
 class CurieExpansionTest(unittest.TestCase):

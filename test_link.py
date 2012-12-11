@@ -12,7 +12,7 @@ class TestParseAbsoluteLink(unittest.TestCase):
         self.assertEquals("http://localhost/", self.link.href)
 
     def testCalculatesUrl(self):
-        self.assertEquals("http://localhost/", self.link.url)
+        self.assertEquals("http://localhost/", self.link.url())
 
     def testNameIsMissing(self):
         self.assertFalse(hasattr(self.link, 'name'))
@@ -31,7 +31,7 @@ class TestParseRelativeLink(unittest.TestCase):
         self.assertEquals("/foo", self.link.href)
 
     def testCalculatesUrl(self):
-        self.assertEquals("http://localhost/foo", self.link.url)
+        self.assertEquals("http://localhost/foo", self.link.url())
 
     def testNameIsMissing(self):
         self.assertFalse(hasattr(self.link, 'name'))
@@ -72,11 +72,11 @@ class TestExpandTemplatedLink(unittest.TestCase):
         self.assertEquals(["arg1"], self.link.arguments)
 
     def testSubstituteNoArgs(self):
-        self.assertEquals("http://localhost/foo/", self.link.url)
+        self.assertEquals("http://localhost/foo/", self.link.url())
 
     def testSubstituteArg(self):
         self.assertEquals("http://localhost/foo/1-bar",
-                          self.link.url_with(arg1="1-bar"))
+                          self.link.url(arg1="1-bar"))
 
     def testPreservesTemplate(self):
         self.assertEquals("http://localhost/foo/{arg1}", self.link.template)

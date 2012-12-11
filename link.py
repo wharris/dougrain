@@ -15,15 +15,11 @@ class Link(object):
         self.arguments = re.findall(r'{([^}]+)}', self.href)
 
         if relative_to_url is None:
-            self.url = self.href
+            self.template = self.href
         else:
-            self.url = urlparse.urljoin(relative_to_url, self.href)
+            self.template = urlparse.urljoin(relative_to_url, self.href)
 
-        self.template = self.url
-
-        self.url = self.url_with()
-
-    def url_with(self, **kwargs):
+    def url(self, **kwargs):
         result = self.template
 
         for arg in self.arguments:
