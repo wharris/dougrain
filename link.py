@@ -34,4 +34,9 @@ class Link(object):
 
         return cls(o, relative_to_url)
 
+    def __repr__(self):
+        if hasattr(self, 'name'):
+            return "<Link %s=%r>" % (self.name, self.template)
+        else:
+            return "<Link %r>" % self.template
 

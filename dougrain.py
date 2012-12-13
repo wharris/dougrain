@@ -62,5 +62,7 @@ class Document(object):
 
         return cls(o, relative_to_url, parent_curie)
 
+    def __repr__(self):
+        return "<Document %r>" % self.url()
 
 
