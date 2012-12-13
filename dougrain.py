@@ -13,9 +13,6 @@ class Document(object):
         for key, value in o.get("_links", {}).iteritems():
             self.links[key] = link.Link.from_object(value, relative_to_url)
 
-        if 'self' in self.links:
-            self.url = (lambda: self.links['self'].url())
-
         self.curie = curie.CurieCollection()
         if parent_curie is not None:
             self.curie.update(parent_curie)
@@ -42,14 +39,17 @@ class Document(object):
                 values = [values]
 
             for value in values:
-                if hasattr(value, 'url'):
-                    url = value.url()
-                    if url in item_urls:
-                        continue
-                    item_urls.add(url)
+                url = value.url()
+                if url is not None and url in item_urls:
+                    continue
+                item_urls.add(url)
                 
                 self.rels.setdefault(rel_key, []).append(value)
 
+    def url(self):
+        if not 'self' in self.links:
+            return None
+        return self.links['self'].url()
 
     def expand_curie(self, link):
         return self.curie.expand(link)
