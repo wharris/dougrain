@@ -82,5 +82,94 @@ class TestExpandTemplatedLink(unittest.TestCase):
         self.assertEquals("http://localhost/foo/{arg1}", self.link.template)
 
 
+class TestExtractVariablesFromLink(unittest.TestCase):
+    def assertVariables(self, variables, href):
+        if isinstance(variables, str):
+            variables = variables.split()
+
+        lnk = link.Link(
+            {
+                'href': href,
+                'templated': True
+            },
+            "http://localhost/"
+        )
+        self.assertEquals(variables, lnk.variables)
+
+    def testNoVariables(self):
+        self.assertVariables([], "/index.html")
+
+    def testSingleVariableLevel1(self):
+        self.assertVariables('var', "{var}")
+        self.assertVariables('hello', "{hello}")
+
+    def testUrlEncodeVariableLevel2(self):
+        self.assertVariables("var", "{+var}")
+        self.assertVariables("hello", "{+hello}")
+        self.assertVariables("path", "{+path}/here")
+        self.assertVariables("path", "here?ref={+path}")
+
+    def testMultipleVariablesLevel3(self):
+        self.assertVariables("x y", "map?{x,y}")
+        self.assertVariables("x hello y", "{x,hello,y}")
+        self.assertVariables("x hello y", "{+x,hello,y}")
+        self.assertVariables("path x", "{+path,x}/here")
+        self.assertVariables("x hello y", "{#x,hello,y}")
+        self.assertVariables("path x", "{#path,x}/here")
+        self.assertVariables("var", "X{.var}")
+        self.assertVariables("x y", "X{.x,y}")
+        self.assertVariables("var", "{/var}")
+        self.assertVariables("var x", "{/var,x}/here")
+        self.assertVariables("x y", "{;x,y}")
+        self.assertVariables("x y empty", "{;x,y,empty}")
+        self.assertVariables("x y", "{?x,y}")
+        self.assertVariables("x y empty", "{?x,y,empty}")
+        self.assertVariables("x", "?fixed=yes{&x}")
+        self.assertVariables("x y empty", "{&x,y,empty}")
+
+    def testLevel4(self):
+      self.assertVariables("var", "{var:3}")
+      self.assertVariables("var", "{var:30}")
+      self.assertVariables("list", "{list}")
+      self.assertVariables("list", "{list*}")
+      self.assertVariables("keys", "{keys}")
+      self.assertVariables("keys", "{keys*}")
+      self.assertVariables("path", "{+path:6}/here")
+      self.assertVariables("list", "{+list}")
+      self.assertVariables("list", "{+list*}")
+      self.assertVariables("keys", "{+keys}")
+      self.assertVariables("keys", "{+keys*}")
+      self.assertVariables("path", "{#path:6}/here")
+      self.assertVariables("list", "{#list}")
+      self.assertVariables("list", "{#list*}")
+      self.assertVariables("keys", "{#keys}")
+      self.assertVariables("keys", "{#keys*}")
+      self.assertVariables("var", "X{.var:3}")
+      self.assertVariables("list", "X{.list}")
+      self.assertVariables("list", "X{.list*}")
+      self.assertVariables("keys", "X{.keys}")
+      self.assertVariables("var", "{/var:1,var}")
+      self.assertVariables("list", "{/list}")
+      self.assertVariables("list", "{/list*}")
+      self.assertVariables("list path", "{/list*,path:4}")
+      self.assertVariables("keys", "{/keys}")
+      self.assertVariables("keys", "{/keys*}")
+      self.assertVariables("hello", "{;hello:5}")
+      self.assertVariables("list", "{;list}")
+      self.assertVariables("list", "{;list*}")
+      self.assertVariables("keys", "{;keys}")
+      self.assertVariables("keys", "{;keys*}")
+      self.assertVariables("var", "{?var:3}")
+      self.assertVariables("list", "{?list}")
+      self.assertVariables("list", "{?list*}")
+      self.assertVariables("keys", "{?keys}")
+      self.assertVariables("keys", "{?keys*}")
+      self.assertVariables("var", "{&var:3}")
+      self.assertVariables("list", "{&list}")
+      self.assertVariables("list", "{&list*}")
+      self.assertVariables("keys", "{&keys}")
+      self.assertVariables("keys", "{&keys*}")
+
+
 if __name__ == '__main__':
     unittest.main()

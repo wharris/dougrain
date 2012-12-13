@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import urlparse
 import re
+import uritemplate
 
 class Link(object):
     def __init__(self, json_object, relative_to_url):
@@ -12,7 +13,14 @@ class Link(object):
         if 'label' in json_object:
             self.label = json_object['label']
 
-        self.variables = re.findall(r'{([^}]+)}', self.href)
+        patterns = [re.sub(r'\*|:\d+', '', pattern)
+                    for pattern in re.findall(r'{[\+#\./;\?&]?([^}]+)*}',
+                                              self.href)]
+        self.variables = []
+        for pattern in patterns:
+            for part in pattern.split(","):
+                if not part in self.variables:
+                    self.variables.append(part)
 
         if relative_to_url is None:
             self.template = self.href
@@ -20,12 +28,7 @@ class Link(object):
             self.template = urlparse.urljoin(relative_to_url, self.href)
 
     def url(self, **kwargs):
-        result = self.template
-
-        for arg in self.variables:
-            result = result.replace("{%s}" % arg, kwargs.get(arg, ''))
-
-        return result
+        return uritemplate.expand(self.template, kwargs)
 
     @classmethod
     def from_object(cls, o, relative_to_url):
