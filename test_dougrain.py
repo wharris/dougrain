@@ -188,8 +188,9 @@ class RelsTest(unittest.TestCase):
                             'templated': True
                         },
                         {
-                            'href': "http://localhost/images/",
-                            'name': 'image'
+                            'href': "http://localhost/images/{rel}",
+                            'name': 'image',
+                            'templated': True
                         }
                     ],
                     'role:host': {'href': "/hosts/1"},
