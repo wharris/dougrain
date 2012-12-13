@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import urlparse
+import itertools
 import curie
 import link
 
@@ -13,7 +14,7 @@ class Document(object):
             self.links[key] = link.Link.from_object(value, relative_to_url)
 
         if 'self' in self.links:
-            self.url = self.links['self'].url()
+            self.url = (lambda: self.links['self'].url())
 
         self.curie = curie.CurieCollection()
         if parent_curie is not None:
@@ -31,6 +32,24 @@ class Document(object):
             self.embedded[key] = self.__class__.from_object(value,
                                                             relative_to_url,
                                                             self.curie)
+
+        self.rels = {}
+        item_urls = set()
+        for key, values in itertools.chain(self.embedded.iteritems(),
+                                          self.links.iteritems()):
+            rel_key = self.expand_curie(key)
+            if not isinstance(values, list):
+                values = [values]
+
+            for value in values:
+                if hasattr(value, 'url'):
+                    url = value.url()
+                    if url in item_urls:
+                        continue
+                    item_urls.add(url)
+                
+                self.rels.setdefault(rel_key, []).append(value)
+
 
     def expand_curie(self, link):
         return self.curie.expand(link)
