@@ -115,12 +115,12 @@ class CurieExpansionTest(unittest.TestCase):
                 '_links': {
                     'curie': [
                         {
-                            'href': "http://localhost/roles/{rel}",
+                            'href': "http://localhost/roles/{relation}",
                             'name': 'role',
                             'templated': True
                         },
                         {
-                            'href': "http://localhost/images/",
+                            'href': "http://localhost/images/{relation}",
                             'name': 'image'
                         }
                     ],
@@ -131,7 +131,8 @@ class CurieExpansionTest(unittest.TestCase):
                         '_links': {
                             'curie': [
                                 {
-                                    'href': "http://localhost/dimension/{rel}",
+                                    'href':
+                                    "http://localhost/dimension/{relation}",
                                     'name': 'dim',
                                     'templated': True
                                 }
@@ -142,7 +143,8 @@ class CurieExpansionTest(unittest.TestCase):
                         '_links': {
                             'curie': [
                                 {
-                                    'href': "http://localhost/imagefiles/{rel}",
+                                    'href':
+                                    "http://localhost/imagefiles/{relation}",
                                     'name': 'image',
                                     'templated': True
                                 }
@@ -183,12 +185,12 @@ class RelsTest(unittest.TestCase):
                 '_links': {
                     'curie': [
                         {
-                            'href': "/roles/{rel}",
+                            'href': "/roles/{relation}",
                             'name': 'role',
                             'templated': True
                         },
                         {
-                            'href': "http://localhost/images/{rel}",
+                            'href': "http://localhost/images/{relation}",
                             'name': 'image',
                             'templated': True
                         }

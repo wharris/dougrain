@@ -8,8 +8,8 @@ class CurieTest(unittest.TestCase):
         self.curies = curie.CurieCollection()
         tlink = lambda url: link.Link(dict(href=url, templated=True),
                                       "http://localhost/api/products/1")
-        self.curies['role'] = tlink("http://localhost/roles/{rel}")
-        self.curies['spec'] = tlink("/specifications/{rel}")
+        self.curies['role'] = tlink("http://localhost/roles/{relation}")
+        self.curies['spec'] = tlink("/specifications/{relation}")
 
     def testExpandsAbsoluteCurie(self):
         self.assertEquals("http://localhost/roles/host",
