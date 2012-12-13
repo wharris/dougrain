@@ -12,7 +12,7 @@ class Link(object):
         if 'label' in json_object:
             self.label = json_object['label']
 
-        self.arguments = re.findall(r'{([^}]+)}', self.href)
+        self.variables = re.findall(r'{([^}]+)}', self.href)
 
         if relative_to_url is None:
             self.template = self.href
@@ -22,7 +22,7 @@ class Link(object):
     def url(self, **kwargs):
         result = self.template
 
-        for arg in self.arguments:
+        for arg in self.variables:
             result = result.replace("{%s}" % arg, kwargs.get(arg, ''))
 
         return result

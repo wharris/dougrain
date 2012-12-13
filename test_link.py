@@ -69,7 +69,7 @@ class TestExpandTemplatedLink(unittest.TestCase):
         )
 
     def testHasArgs(self):
-        self.assertEquals(["arg1"], self.link.arguments)
+        self.assertEquals(["arg1"], self.link.variables)
 
     def testSubstituteNoArgs(self):
         self.assertEquals("http://localhost/foo/", self.link.url())
