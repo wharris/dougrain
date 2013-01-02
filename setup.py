@@ -15,7 +15,7 @@ setup(
     packages = ['dougrain'],
     provides = ['dougrain'],
     long_description=open("README.md").read(),
-    install_requires = ['simplejson >= 2.5.0'],
+    install_requires = ['uritemplate >= 0.5.1'],
     classifiers = [
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
