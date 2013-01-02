@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import unittest
-import curie
-import link
+from dougrain import curie
+from dougrain import link
 
 class CurieTest(unittest.TestCase):
     def setUp(self):

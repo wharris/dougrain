@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import unittest
-import link
+from dougrain import link
 
 class TestParseAbsoluteLink(unittest.TestCase):
     def setUp(self):
