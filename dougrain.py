@@ -3,6 +3,33 @@ import urlparse
 import itertools
 import curie
 import link
+import UserDict
+
+class Relationships(UserDict.DictMixin):
+    def __init__(self, links, embedded, curie):
+        self.rels = {}
+
+        item_urls = set()
+        for key, values in itertools.chain(embedded.iteritems(),
+                                           links.iteritems()):
+            rel_key = curie.expand(key)
+            if not isinstance(values, list):
+                values = [values]
+
+            for value in values:
+                url = value.url()
+                if url is not None and url in item_urls:
+                    continue
+                item_urls.add(url)
+                
+                self.rels.setdefault(rel_key, []).append(value)
+
+    def __getitem__(self, key):
+        return self.rels[key]
+
+    def keys(self):
+        return self.rels.keys()
+         
 
 class Document(object):
     def __init__(self, o, relative_to_url, parent_curie=None):
@@ -30,21 +57,7 @@ class Document(object):
                                                             relative_to_url,
                                                             self.curie)
 
-        self.rels = {}
-        item_urls = set()
-        for key, values in itertools.chain(self.embedded.iteritems(),
-                                          self.links.iteritems()):
-            rel_key = self.expand_curie(key)
-            if not isinstance(values, list):
-                values = [values]
-
-            for value in values:
-                url = value.url()
-                if url is not None and url in item_urls:
-                    continue
-                item_urls.add(url)
-                
-                self.rels.setdefault(rel_key, []).append(value)
+        self.rels = Relationships(self.links, self.embedded, self.curie)
 
     def url(self):
         if not 'self' in self.links:
