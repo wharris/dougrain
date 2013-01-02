@@ -17,7 +17,7 @@ setup(
     long_description=open("README.md").read(),
     install_requires = ['uritemplate >= 0.5.1'],
     classifiers = [
-        'Development Status :: 4 - Beta',
+        'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD Licencse',
         'Programming Language :: Python',
