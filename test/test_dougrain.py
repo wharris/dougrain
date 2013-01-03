@@ -16,6 +16,7 @@ class ParseSimpleTest(unittest.TestCase):
     def testHasAttrs(self):
         self.assertEquals(self.doc.attrs["name"], "David Bowman")
 
+
 class ParseLinksTest(unittest.TestCase):
     def setUp(self):
         self.doc = dougrain.Document.from_object({
