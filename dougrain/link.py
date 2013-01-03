@@ -3,6 +3,18 @@ import urlparse
 import re
 import uritemplate
 
+def extract_variables(href):
+    patterns = [re.sub(r'\*|:\d+', '', pattern)
+                for pattern in re.findall(r'{[\+#\./;\?&]?([^}]+)*}', href)]
+    variables = []
+    for pattern in patterns:
+        for part in pattern.split(","):
+            if not part in variables:
+                variables.append(part)
+
+    return variables
+
+
 class Link(object):
     def __init__(self, json_object, relative_to_url):
         self.href = json_object['href']
@@ -13,15 +25,7 @@ class Link(object):
         if 'label' in json_object:
             self.label = json_object['label']
 
-        patterns = [re.sub(r'\*|:\d+', '', pattern)
-                    for pattern in re.findall(r'{[\+#\./;\?&]?([^}]+)*}',
-                                              self.href)]
-        self.variables = []
-        for pattern in patterns:
-            for part in pattern.split(","):
-                if not part in self.variables:
-                    self.variables.append(part)
-
+        self.variables = extract_variables(self.href)
         if relative_to_url is None:
             self.template = self.href
         else:
