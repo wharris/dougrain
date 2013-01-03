@@ -67,6 +67,9 @@ class Document(object):
     def expand_curie(self, link):
         return self.curie.expand(link)
 
+    def as_object(self):
+        return self.attrs
+
     @classmethod
     def from_object(cls, o, relative_to_url=None, parent_curie=None):
 

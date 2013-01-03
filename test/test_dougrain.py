@@ -18,21 +18,24 @@ class ParseSimpleTest(unittest.TestCase):
 
 
 class ParseLinksTest(unittest.TestCase):
+    OBJECT = {
+        "_links": {
+            "self": {"href": "dougrain"},
+            "next": {
+                "href": "http://localhost/wharris/esmre",
+                "label": "Next"
+            },
+            "parent": {"href": "/wharris/"},
+            "images": [
+                {"href": "/foo"},
+                {"href": "/bar"}
+            ],
+        }
+    }
+
     def setUp(self):
-        self.doc = dougrain.Document.from_object({
-            "_links": {
-                "self": {"href": "dougrain"},
-                "next": {
-                    "href": "http://localhost/wharris/esmre",
-                    "label": "Next"
-                },
-                "parent": {"href": "/wharris/"},
-                "images": [
-                    {"href": "/foo"},
-                    {"href": "/bar"}
-                ],
-            }
-        }, relative_to_url="http://localhost/wharris/dougrain")
+        self.doc = dougrain.Document.from_object(
+            self.OBJECT, relative_to_url="http://localhost/wharris/dougrain")
 
     def testLoadsSingleLinkHref(self):
         self.assertEquals("http://localhost/wharris/esmre",
@@ -68,31 +71,32 @@ class ParseLinksTest(unittest.TestCase):
 
 
 class ParseEmbeddedObjectsTest(unittest.TestCase):
+    OBJECT = {
+        "_embedded": {
+            "foo": {
+                "name": "Foo",
+                "size": 88888888
+            },
+            "bar": [
+                {
+                    "title": "Bar 1"
+                },
+                {
+                    "title": "Bar 2"
+                }
+            ],
+            "bundy": {
+                "_links": {
+                    "next": {"href": "/people/2"}
+                }
+            }
+        }
+    }
+
     def setUp(self):
         self.doc = dougrain.Document.from_object(
-            {
-                "_embedded": {
-                    "foo": {
-                        "name": "Foo",
-                        "size": 88888888
-                    },
-                    "bar": [
-                        {
-                            "title": "Bar 1"
-                        },
-                        {
-                            "title": "Bar 2"
-                        }
-                    ],
-                    "bundy": {
-                        "_links": {
-                            "next": {"href": "/people/2"}
-                        }
-                    }
-                }
-            },
-            relative_to_url="http://localhost/people/"
-        )
+            self.OBJECT,
+            relative_to_url="http://localhost/people/")
 
     def testLoadsSingleEmbeddedObject(self):
         foo = self.doc.embedded["foo"]
@@ -110,51 +114,51 @@ class ParseEmbeddedObjectsTest(unittest.TestCase):
 
 
 class CurieExpansionTest(unittest.TestCase):
-    def setUp(self):
-        self.doc = dougrain.Document.from_object(
-            {
+    OBJECT = {
+        '_links': {
+            'curie': [
+                {
+                    'href': "http://localhost/roles/{relation}",
+                    'name': 'role',
+                    'templated': True
+                },
+                {
+                    'href': "http://localhost/images/{relation}",
+                    'name': 'image'
+                }
+            ],
+            'role:host': {'href': "/hosts/1"}
+        },
+        '_embedded': {
+            'role:sizing': {
                 '_links': {
                     'curie': [
                         {
-                            'href': "http://localhost/roles/{relation}",
-                            'name': 'role',
+                            'href':
+                            "http://localhost/dimension/{relation}",
+                            'name': 'dim',
                             'templated': True
-                        },
-                        {
-                            'href': "http://localhost/images/{relation}",
-                            'name': 'image'
                         }
-                    ],
-                    'role:host': {'href': "/hosts/1"}
-                },
-                '_embedded': {
-                    'role:sizing': {
-                        '_links': {
-                            'curie': [
-                                {
-                                    'href':
-                                    "http://localhost/dimension/{relation}",
-                                    'name': 'dim',
-                                    'templated': True
-                                }
-                            ]
-                        }
-                    },
-                    'role:coloring': {
-                        '_links': {
-                            'curie': [
-                                {
-                                    'href':
-                                    "http://localhost/imagefiles/{relation}",
-                                    'name': 'image',
-                                    'templated': True
-                                }
-                            ]
-                        }
-                    },
+                    ]
                 }
-            }
-        )
+            },
+            'role:coloring': {
+                '_links': {
+                    'curie': [
+                        {
+                            'href':
+                            "http://localhost/imagefiles/{relation}",
+                            'name': 'image',
+                            'templated': True
+                        }
+                    ]
+                }
+            },
+        }
+    }
+
+    def setUp(self):
+        self.doc = dougrain.Document.from_object(self.OBJECT)
 
     def testExposesCurieCollection(self):
         self.assertEquals("http://localhost/roles/category",
@@ -180,61 +184,60 @@ class CurieExpansionTest(unittest.TestCase):
 
 
 class RelsTest(unittest.TestCase):
-    def setUp(self):
-        self.doc = dougrain.Document(
-            {
-                '_links': {
-                    'curie': [
-                        {
-                            'href': "/roles/{relation}",
-                            'name': 'role',
-                            'templated': True
-                        },
-                        {
-                            'href': "http://localhost/images/{relation}",
-                            'name': 'image',
-                            'templated': True
-                        }
-                    ],
-                    'role:host': {'href': "/hosts/1"},
-                    'role:application': {'href': "/apps/1"},
-                    'role:dept': [
-                        {'href': "/departments/1"},
-                        {'href': "/departments/2"}
-                    ]
+    OBJECT = {
+        '_links': {
+            'curie': [
+                {
+                    'href': "/roles/{relation}",
+                    'name': 'role',
+                    'templated': True
                 },
-                '_embedded': {
-                    'role:consumer': {
-                        '_links': {
-                            'self': {
-                                'href': '/clients/1'
-                            }
-                        },
-                        'name': "Client 1"
-                    },
-                    'role:application': {
-                        '_links': {
-                            'self': { 'href': "/apps/2" }
-                        }
-                    },
-                    'role:dept': [
-                        {
-                            '_links': {
-                                'self': {
-                                    'href': "http://localhost/departments/2"
-                                }
-                            },
-                        },
-                        {
-                            '_links': {
-                                'self': { 'href': "/departments/3" }
-                            }
-                        }
-                    ]
+                {
+                    'href': "http://localhost/images/{relation}",
+                    'name': 'image',
+                    'templated': True
                 }
-
-             }, "http://localhost"
-        )
+            ],
+            'role:host': {'href': "/hosts/1"},
+            'role:application': {'href': "/apps/1"},
+            'role:dept': [
+                {'href': "/departments/1"},
+                {'href': "/departments/2"}
+            ]
+        },
+        '_embedded': {
+            'role:consumer': {
+                '_links': {
+                    'self': {
+                        'href': '/clients/1'
+                    }
+                },
+                'name': "Client 1"
+            },
+            'role:application': {
+                '_links': {
+                    'self': { 'href': "/apps/2" }
+                }
+            },
+            'role:dept': [
+                {
+                    '_links': {
+                        'self': {
+                            'href': "http://localhost/departments/2"
+                        }
+                    },
+                },
+                {
+                    '_links': {
+                        'self': { 'href': "/departments/3" }
+                    }
+                }
+            ]
+        }
+    }
+    
+    def setUp(self):
+        self.doc = dougrain.Document(self.OBJECT, "http://localhost")
 
     def testHasHostLinkRel(self):
         host_role = self.doc.expand_curie('role:host')
@@ -272,6 +275,31 @@ class RelsTest(unittest.TestCase):
         self.assertEquals(
             ["http://localhost/departments/%d" % x for x in [1,2,3]],
             urls)
+
+
+class SerializeTests(unittest.TestCase):
+    def checkEqualObjects(self, obj):
+        doc = dougrain.Document.from_object(obj, "http://localhost")
+        self.assertEquals(obj, doc.as_object())
+
+    def testSimple(self):
+        self.checkEqualObjects({})
+
+    def testAttributes(self):
+        self.checkEqualObjects({"latlng": [53.0, -0.001],
+                                "altitude": 10.0,
+                                "haccuracy": 5.0,
+                                "vacuracy": 10.0})
+
+    def testLinks(self):
+        self.checkEqualObjects(ParseLinksTest.OBJECT)
+
+    def testEmbeddedObjects(self):
+        self.checkEqualObjects(ParseEmbeddedObjectsTest.OBJECT)
+
+    def testRels(self):
+        self.checkEqualObjects(CurieExpansionTest.OBJECT)
+        self.checkEqualObjects(RelsTest.OBJECT)
 
 
 if __name__ == '__main__':
