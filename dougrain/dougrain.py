@@ -70,6 +70,14 @@ class Document(object):
     def as_object(self):
         return self.attrs
 
+    def set_attribute(self, key, value):
+        setattr(self, key, value)
+        self.attrs[key] = value
+
+    def delete_attribute(self, key):
+        del self.attrs[key]
+        delattr(self, key)
+
     @classmethod
     def from_object(cls, o, relative_to_url=None, parent_curie=None):
 
@@ -77,6 +85,10 @@ class Document(object):
             return map(lambda x: cls.from_object(x, relative_to_url), o)
 
         return cls(o, relative_to_url, parent_curie)
+
+    @classmethod
+    def empty(cls):
+        return cls.from_object({})
 
     def __repr__(self):
         return "<Document %r>" % self.url()

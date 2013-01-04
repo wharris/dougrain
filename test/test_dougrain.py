@@ -302,5 +302,46 @@ class SerializeTests(unittest.TestCase):
         self.checkEqualObjects(RelsTest.OBJECT)
 
 
+class AttributeMutationTests(unittest.TestCase):
+    def testSetAttributeAddsAttribute(self):
+        doc = dougrain.Document.empty()
+        doc.set_attribute('foo', "bar")
+
+        self.assertEquals("bar", doc.foo)
+        self.assertEquals("bar", doc.attrs['foo'])
+
+    def testSetAttributeUpdatesAttribute(self):
+        doc = dougrain.Document.empty()
+        doc.set_attribute('foo', "bar")
+
+        doc.set_attribute('foo', "bundy")
+
+        self.assertEquals("bundy", doc.foo)
+        self.assertEquals("bundy", doc.attrs['foo'])
+
+    def testRemoveAttributeRemovesAttribute(self):
+        doc = dougrain.Document.empty()
+        doc.set_attribute('foo', "bar")
+
+        doc.delete_attribute('foo')
+
+        self.assertFalse(hasattr(doc, 'foo'))
+        self.assertFalse('foo' in doc.attrs)
+
+    def testBuildObjectFromEmpty(self):
+        target = {"latlng": [53.0, -0.001],
+                  "altitude": 10.0,
+                  "haccuracy": 5.0,
+                  "vacuracy": 10.0}
+        target_doc = dougrain.Document.from_object(target)
+
+        doc = dougrain.Document.empty()
+
+        for key, value in target_doc.attrs.iteritems():
+            doc.set_attribute(key, value)
+
+        self.assertEquals(target_doc.as_object(), doc.as_object())
+
+
 if __name__ == '__main__':
     unittest.main()
