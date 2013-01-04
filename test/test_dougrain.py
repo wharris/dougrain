@@ -69,6 +69,10 @@ class ParseLinksTest(unittest.TestCase):
         self.assertEquals(["/foo", "/bar"],
                           [link.href for link in self.doc.links['images']])
 
+    def testLinksIsNotAnAttribute(self):
+        self.assertFalse('_links' in self.doc.attrs)
+        self.assertFalse(hasattr(self.doc, '_links'))
+
 
 class ParseEmbeddedObjectsTest(unittest.TestCase):
     OBJECT = {
@@ -111,6 +115,10 @@ class ParseEmbeddedObjectsTest(unittest.TestCase):
         link = self.doc.embedded["bundy"].links["next"]
         self.assertEquals("/people/2", link.href)
         self.assertEquals("http://localhost/people/2", link.url())
+
+    def testEmbeddedIsNotAnAttribute(self):
+        self.assertFalse('_embedded' in self.doc.attrs)
+        self.assertFalse(hasattr(self.doc, '_embedded'))
 
 
 class CurieExpansionTest(unittest.TestCase):

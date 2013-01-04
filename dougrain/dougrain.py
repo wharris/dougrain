@@ -33,8 +33,14 @@ class Relationships(UserDict.DictMixin):
 
 class Document(object):
     def __init__(self, o, relative_to_url, parent_curie=None):
-        self.attrs = o
-        self.__dict__.update(o)
+        self.o = o
+        self.attrs = dict(o)
+        self.attrs['_links'] = None
+        del self.attrs['_links']
+        self.attrs['_embedded'] = None
+        del self.attrs['_embedded']
+        self.__dict__.update(self.attrs)
+
         self.links = {}
 
         for key, value in o.get("_links", {}).iteritems():
@@ -68,13 +74,15 @@ class Document(object):
         return self.curie.expand(link)
 
     def as_object(self):
-        return self.attrs
+        return self.o
 
     def set_attribute(self, key, value):
+        self.o[key] = value
         setattr(self, key, value)
         self.attrs[key] = value
 
     def delete_attribute(self, key):
+        del self.o[key]
         del self.attrs[key]
         delattr(self, key)
 
