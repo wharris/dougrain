@@ -4,6 +4,7 @@ import itertools
 import curie
 import link
 import UserDict
+from functools import wraps
 
 class Relationships(UserDict.DictMixin):
     def __init__(self, links, embedded, curie):
@@ -31,38 +32,78 @@ class Relationships(UserDict.DictMixin):
         return self.rels.keys()
          
 
+def mutator(fn):
+    @wraps(fn)
+    def deco(self, *args, **kwargs):
+        try:
+            return fn(self, *args, **kwargs)
+        finally:
+            self.clear_cache()
+            self.prepare_cache()
+
+    return deco
+
+
 class Document(object):
     def __init__(self, o, relative_to_url, parent_curie=None):
         self.o = o
-        self.attrs = dict(o)
-        self.attrs['_links'] = None
-        del self.attrs['_links']
-        self.attrs['_embedded'] = None
-        del self.attrs['_embedded']
-        self.__dict__.update(self.attrs)
+        self.parent_curie = parent_curie
+        self.relative_to_url = relative_to_url
+        self.prepare_cache()
 
-        self.links = {}
+    TO_SAVE = "o parent_curie relative_to_url".split()
 
-        for key, value in o.get("_links", {}).iteritems():
-            self.links[key] = link.Link.from_object(value, relative_to_url)
+    def clear_cache(self):
+        saves = dict((key, getattr(self, key))
+                     for key in self.TO_SAVE)
+        self.__dict__.clear()
+        for key in self.TO_SAVE:
+            setattr(self, key, saves[key])
 
-        self.curie = curie.CurieCollection()
-        if parent_curie is not None:
-            self.curie.update(parent_curie)
+    def attrs_cache(self):
+        attrs = dict(self.o)
+        attrs['_links'] = None
+        del attrs['_links']
+        attrs['_embedded'] = None
+        del attrs['_embedded']
+        return attrs
+
+    def links_cache(self):
+        links = {}
+
+        for key, value in self.o.get("_links", {}).iteritems():
+            links[key] = link.Link.from_object(value, self.relative_to_url)
+
+        return links
+
+    def load_curie_collection(self):
+        result = curie.CurieCollection()
+        if self.parent_curie is not None:
+            result.update(self.parent_curie)
 
         curies = self.links.get('curie', [])
         if not isinstance(curies, list):
             curies = [curies]
 
         for curie_link in curies:
-            self.curie[curie_link.name] = curie_link
+            result[curie_link.name] = curie_link
 
-        self.embedded = {}
-        for key, value in o.get("_embedded", {}).iteritems():
-            self.embedded[key] = self.__class__.from_object(value,
-                                                            relative_to_url,
-                                                            self.curie)
+        return result
 
+    def embedded_cache(self):
+        embedded = {}
+        for key, value in self.o.get("_embedded", {}).iteritems():
+            embedded[key] = self.from_object(value,
+                                             self.relative_to_url,
+                                             self.curie)
+        return embedded
+
+    def prepare_cache(self):
+        self.attrs = self.attrs_cache()
+        self.__dict__.update(self.attrs)
+        self.links = self.links_cache()
+        self.curie = self.load_curie_collection()
+        self.embedded = self.embedded_cache()
         self.rels = Relationships(self.links, self.embedded, self.curie)
 
     def url(self):
@@ -76,15 +117,13 @@ class Document(object):
     def as_object(self):
         return self.o
 
+    @mutator
     def set_attribute(self, key, value):
         self.o[key] = value
-        setattr(self, key, value)
-        self.attrs[key] = value
 
+    @mutator
     def delete_attribute(self, key):
         del self.o[key]
-        del self.attrs[key]
-        delattr(self, key)
 
     @classmethod
     def from_object(cls, o, relative_to_url=None, parent_curie=None):
