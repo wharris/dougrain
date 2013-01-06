@@ -351,5 +351,80 @@ class AttributeMutationTests(unittest.TestCase):
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
 
+class LinkMutationTests(unittest.TestCase):
+    def addLinks(self, from_doc, to_doc):
+        for rel, links in from_doc.links.iteritems():
+            if not isinstance(links, list):
+                links = [links]
+            for link in links:
+                to_doc.add_link(rel, link)
+
+    def testAddSimpleLink(self):
+        target = {
+            '_links': {
+                'self': {'href': "http://localhost/1"}
+            }
+        }
+
+        target_doc = dougrain.Document.from_object(target, "http://localhost/")
+
+        doc = dougrain.Document.empty()
+        self.addLinks(target_doc, doc)
+
+        self.assertEquals(target, doc.as_object())
+        self.assertEquals(target_doc.links, doc.links)
+
+    def testAddLinkForSecondRelKeepsFirstRel(self):
+        target = {
+            '_links': {
+                'self': {'href': "http://localhost/1"},
+                'child': {'href': "http://localhost/1/1"}
+            }
+        }
+
+        target_doc = dougrain.Document.from_object(target, "http://localhost/")
+
+        doc = dougrain.Document.empty()
+        self.addLinks(target_doc, doc)
+
+        self.assertEquals(target, doc.as_object())
+        self.assertEquals(target_doc.links, doc.links)
+
+    def testAddSecondLinkForSameRel(self):
+        target = {
+            '_links': {
+                'self': {'href': "http://localhost/2"},
+                'child': [{'href': "http://localhost/2/1"},
+                          {'href': "http://localhost/2/2"}]
+            }
+        }
+
+        target_doc = dougrain.Document.from_object(target, "http://localhost/")
+
+        doc = dougrain.Document.empty()
+        self.addLinks(target_doc, doc)
+
+        self.assertEquals(target, doc.as_object())
+        self.assertEquals(target_doc.links, doc.links)
+
+    def testAddThirdLinkForSameRel(self):
+        target = {
+            '_links': {
+                'self': {'href': "http://localhost/2"},
+                'child': [{'href': "http://localhost/2/1"},
+                          {'href': "http://localhost/2/2"},
+                          {'href': "http://localhost/2/3"}]
+            }
+        }
+
+        target_doc = dougrain.Document.from_object(target, "http://localhost/")
+
+        doc = dougrain.Document.empty()
+        self.addLinks(target_doc, doc)
+
+        self.assertEquals(target, doc.as_object())
+        self.assertEquals(target_doc.links, doc.links)
+
+
 if __name__ == '__main__':
     unittest.main()

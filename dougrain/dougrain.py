@@ -125,6 +125,20 @@ class Document(object):
     def delete_attribute(self, key):
         del self.o[key]
 
+    @mutator
+    def add_link(self, rel, link):
+        links = self.o.setdefault('_links', {})
+        new_link = link.as_object()
+        if rel not in links:
+            links[rel] = new_link
+            return
+
+        current_links = links[rel]
+        if isinstance(current_links, list):
+            current_links.append(new_link)
+        else:
+            links[rel] = [current_links, new_link]
+
     @classmethod
     def from_object(cls, o, relative_to_url=None, parent_curie=None):
 
