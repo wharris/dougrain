@@ -564,6 +564,55 @@ class DeleteLinkTests(unittest.TestCase):
 
         self.assertEquals(target, doc.as_object())
 
+class EmbedTest(unittest.TestCase):
+    def setUp(self):
+        self.doc = dougrain.Document.empty("http://localhost/")
+        self.embedded1 = dougrain.Document.from_object({"foo": "bar"})
+        self.embedded2 = dougrain.Document.from_object({"spam": "eggs"})
+        self.embedded3 = dougrain.Document.from_object({"ham": "beans"})
+
+    def testEmbed(self):
+        expected = {
+            '_embedded': {
+                'child': self.embedded1.as_object()
+            }
+        }
+        self.doc.embed('child', self.embedded1)
+        self.assertEquals(expected, self.doc.as_object())
+        self.assertEquals(self.embedded1, self.doc.embedded['child'])
+
+    def testEmbedAnotherRel(self):
+        expected = {
+            '_embedded': {
+                'prev': self.embedded2.as_object(),
+                'next': self.embedded3.as_object(),
+            }
+        }
+        self.doc.embed('prev', self.embedded2)
+        self.doc.embed('next', self.embedded3)
+
+        self.assertEquals(expected, self.doc.as_object())
+        self.assertEquals(self.embedded2, self.doc.embedded['prev'])
+        self.assertEquals(self.embedded3, self.doc.embedded['next'])
+
+    def testEmbedSameRel(self):
+        expected = {
+            '_embedded': {
+                'item': [
+                    self.embedded1.as_object(),
+                    self.embedded2.as_object(),
+                    self.embedded3.as_object()
+                ]
+            }
+        }
+        self.doc.embed('item', self.embedded1)
+        self.doc.embed('item', self.embedded2)
+        self.doc.embed('item', self.embedded3)
+
+        self.assertEquals(expected, self.doc.as_object())
+        self.assertEquals([self.embedded1, self.embedded2, self.embedded3],
+                          self.doc.embedded['item'])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -181,8 +181,23 @@ class Document(object):
         return cls(o, relative_to_url, parent_curie)
 
     @classmethod
-    def empty(cls):
-        return cls.from_object({})
+    def empty(cls, relative_to_url=None):
+        return cls.from_object({}, relative_to_url=relative_to_url)
+
+    @mutator
+    def embed(self, rel, other):
+        embedded = self.o.setdefault('_embedded', {})
+        links_for_rel = embedded.setdefault(rel, [])
+
+        if isinstance(links_for_rel, dict):
+            links_for_rel = [links_for_rel]
+
+        links_for_rel.append(other.as_object())
+
+        if len(links_for_rel) == 1:
+            links_for_rel = links_for_rel[0]
+
+        embedded[rel] = links_for_rel
 
     def __eq__(self, other):
         if not isinstance(other, Document):
