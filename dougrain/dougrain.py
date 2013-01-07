@@ -139,6 +139,34 @@ class Document(object):
         else:
             links[rel] = [current_links, new_link]
 
+    @mutator
+    def delete_link(self, rel, href=lambda _: True):
+        if callable(href):
+            href_filter = href
+        else:
+            href_filter = lambda x: x == href
+
+        links = self.o['_links']
+        links_for_rel = links[rel]
+        if isinstance(links_for_rel, dict):
+            links_for_rel = [links_for_rel]
+
+        new_links_for_rel = []
+        for link in links_for_rel:
+            if not href_filter(link['href']):
+                new_links_for_rel.append(link)
+
+        if new_links_for_rel:
+            if len(new_links_for_rel) == 1:
+                new_links_for_rel = new_links_for_rel[0]
+
+            self.o['_links'][rel] = new_links_for_rel
+        else:
+            del self.o['_links'][rel]
+
+        if not self.o['_links']:
+            del self.o['_links']
+
     @classmethod
     def from_object(cls, o, relative_to_url=None, parent_curie=None):
 
@@ -151,7 +179,14 @@ class Document(object):
     def empty(cls):
         return cls.from_object({})
 
+    def __eq__(self, other):
+        if not isinstance(other, Document):
+            return False
+        
+        return self.as_object() == other.as_object()
+
     def __repr__(self):
         return "<Document %r>" % self.url()
+
 
 

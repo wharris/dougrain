@@ -351,7 +351,7 @@ class AttributeMutationTests(unittest.TestCase):
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
 
-class LinkMutationTests(unittest.TestCase):
+class AddLinkTests(unittest.TestCase):
     def addLinks(self, from_doc, to_doc):
         for rel, links in from_doc.links.iteritems():
             if not isinstance(links, list):
@@ -424,6 +424,103 @@ class LinkMutationTests(unittest.TestCase):
 
         self.assertEquals(target, doc.as_object())
         self.assertEquals(target_doc.links, doc.links)
+
+class DeleteLinkTests(unittest.TestCase):
+    def testDeleteOnlyLinkForRel(self):
+        initial = {
+            '_links': {
+                'self': {'href': "http://localhost/2"},
+                'child': {'href': "http://localhost/2/1"}
+            }
+        }
+
+        target = {
+            '_links': {
+                'self': {'href': "http://localhost/2"},
+            }
+        }
+
+        doc = dougrain.Document.from_object(initial, "http://localhost/")
+        target_doc = dougrain.Document.from_object(target, "http://localhost/")
+
+        doc.delete_link("child")
+
+        self.assertEquals(target_doc, doc)
+        self.assertFalse('child' in doc.links)
+
+    def testDeleteEveryLinkForRel(self):
+        initial = {
+            '_links': {
+                'self': {'href': "http://localhost/2"},
+                'child': [
+                    {'href': "http://localhost/2/1"},
+                    {'href': "http://localhost/2/2"},
+                    {'href': "http://localhost/2/3"}
+                ]
+            }
+        }
+
+        target = {
+            '_links': {
+                'self': {'href': "http://localhost/2"}
+            }
+        }
+
+        doc = dougrain.Document.from_object(initial, "http://localhost/")
+        target_doc = dougrain.Document.from_object(target, "http://localhost/")
+
+        doc.delete_link("child")
+
+        self.assertEquals(target_doc.as_object(), doc.as_object())
+        self.assertFalse('child' in doc.links)
+
+
+    def testDeleteLastLink(self):
+        initial = {
+            '_links': {
+                'self': {'href': "http://localhost/2"},
+                'child': {'href': "http://localhost/2/1"}
+            }
+        }
+
+        target = {}
+
+        doc = dougrain.Document.from_object(initial, "http://localhost/")
+        target_doc = dougrain.Document.from_object(target, "http://localhost/")
+
+        doc.delete_link("child")
+        doc.delete_link("self")
+
+        self.assertEquals(target_doc.as_object(), doc.as_object())
+
+    def testDeleteIndividualLinks(self):
+        initial = {
+            '_links': {
+                'self': {'href': "http://localhost/2"},
+                'child': [
+                    {'href': "http://localhost/2/1"},
+                    {'href': "http://localhost/2/2"},
+                    {'href': "http://localhost/2/3"}
+                ]
+            }
+        }
+
+        doc = dougrain.Document.from_object(initial, "http://localhost/")
+
+        doc.delete_link("child", "http://localhost/2/1")
+        self.assertEquals([{'href': "http://localhost/2/2"},
+                           {'href': "http://localhost/2/3"}],
+                          doc.as_object()['_links']['child'])
+
+        doc.delete_link("child", "http://localhost/2/3")
+        self.assertEquals({'href': "http://localhost/2/2"},
+                          doc.as_object()['_links']['child'])
+        
+        doc.delete_link("child", "http://localhost/2/2")
+        self.assertFalse("child" in doc.as_object()['_links'])
+
+        doc.delete_link("self", "http://localhost/2")
+        self.assertFalse('_links' in doc.as_object())
 
 
 if __name__ == '__main__':
