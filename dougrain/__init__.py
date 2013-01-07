@@ -2,5 +2,5 @@
 
 __version__ = '0.0.1'
 
-from dougrain import Document
+from dougrain.document import Document
 
