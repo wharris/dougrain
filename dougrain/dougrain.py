@@ -140,7 +140,12 @@ class Document(object):
             links[rel] = [current_links, new_link]
 
     @mutator
-    def delete_link(self, rel, href=lambda _: True):
+    def delete_link(self, rel=None, href=lambda _: True):
+        if rel is None:
+            for rel in self.o['_links'].keys():
+                self.delete_link(rel, href)
+            return
+
         if callable(href):
             href_filter = href
         else:
