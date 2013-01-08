@@ -17,6 +17,7 @@ def extract_variables(href):
 
 class Link(object):
     def __init__(self, json_object, relative_to_url):
+        self.o = json_object
         self.href = json_object['href']
 
         if 'name' in json_object:
@@ -34,6 +35,9 @@ class Link(object):
     def url(self, **kwargs):
         return uritemplate.expand(self.template, kwargs)
 
+    def as_object(self):
+        return self.o
+
     @classmethod
     def from_object(cls, o, relative_to_url):
         if isinstance(o, list):
@@ -46,4 +50,8 @@ class Link(object):
             return "<Link %s=%r>" % (self.name, self.template)
         else:
             return "<Link %r>" % self.template
+
+    def __eq__(self, other):
+        return (isinstance(other, Link) and
+                self.as_object() == other.as_object())
 
