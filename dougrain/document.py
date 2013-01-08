@@ -125,6 +125,9 @@ class Document(object):
     def delete_attribute(self, key):
         del self.o[key]
 
+    def link(self, href, **kwargs):
+        return link.Link(dict(href=href, **kwargs), self.relative_to_url)
+
     @mutator
     def add_link(self, rel, link):
         links = self.o.setdefault('_links', {})
@@ -198,6 +201,43 @@ class Document(object):
             links_for_rel = links_for_rel[0]
 
         embedded[rel] = links_for_rel
+
+    @mutator
+    def delete_embedded(self, rel=None, self_href=lambda _: True):
+        if rel is None:
+            for rel in self.o['_embedded'].keys():
+                self.delete_embedded(rel, self_href)
+            return
+
+        if callable(self_href):
+            url_filter = self_href
+        else:
+            url_filter = lambda x: x == self_href
+
+        rel_embeds = self.o['_embedded'][rel]
+
+        if isinstance(rel_embeds, dict):
+            del self.o['_embedded'][rel]
+
+            if not self.o['_embedded']:
+                del self.o['_embedded']
+            return
+
+        new_rel_embeds = []
+        for embedded in list(rel_embeds):
+            embedded_doc = Document(embedded, self.relative_to_url)
+            if not url_filter(embedded_doc.url()):
+                new_rel_embeds.append(embedded)
+
+        if not new_rel_embeds:
+            del self.o['_embedded'][rel]
+        elif len(new_rel_embeds) == 1:
+            self.o['_embedded'][rel] = new_rel_embeds[0]
+        else:
+            self.o['_embedded'][rel] = new_rel_embeds
+
+        if not self.o['_embedded']:
+            del self.o['_embedded']
 
     def __eq__(self, other):
         if not isinstance(other, Document):

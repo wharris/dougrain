@@ -564,6 +564,7 @@ class DeleteLinkTests(unittest.TestCase):
 
         self.assertEquals(target, doc.as_object())
 
+
 class EmbedTest(unittest.TestCase):
     def setUp(self):
         self.doc = dougrain.Document.empty("http://localhost/")
@@ -612,6 +613,113 @@ class EmbedTest(unittest.TestCase):
         self.assertEquals(expected, self.doc.as_object())
         self.assertEquals([self.embedded1, self.embedded2, self.embedded3],
                           self.doc.embedded['item'])
+
+
+class DeleteEmbeddedTests(unittest.TestCase):
+    def doc(self, href):
+        doc = dougrain.Document.empty("http://localhost")
+        doc.add_link("self", doc.link(href))
+        return doc
+
+    def testDeleteOnlyEmbedForRel(self):
+        doc = self.doc("http://localhost/2")
+        doc.embed('child', self.doc("http://localhost/2/1"))
+        doc.embed('root', self.doc("http://localhost/"))
+
+        target_doc = self.doc("http://localhost/2")
+        target_doc.embed('root', self.doc("http://localhost/"))
+
+        doc.delete_embedded("child")
+
+        self.assertEquals(target_doc.as_object(), doc.as_object())
+        self.assertFalse('child' in doc.embedded)
+        self.assertTrue('root' in doc.embedded)
+
+    def testDeleteEveryEmbedForRel(self):
+        doc = self.doc("http://localhost/2")
+        doc.embed('root', self.doc("http://localhost/"))
+        doc.embed('child', self.doc("http://localhost/2/1"))
+        doc.embed('child', self.doc("http://localhost/2/1"))
+        doc.embed('child', self.doc("http://localhost/2/1"))
+
+        target_doc = self.doc("http://localhost/2")
+        target_doc.embed('root', self.doc("http://localhost/"))
+
+        doc.delete_embedded("child")
+
+        self.assertEquals(target_doc.as_object(), doc.as_object())
+        self.assertFalse('child' in doc.embedded)
+        self.assertTrue('root' in doc.embedded)
+
+    def testDeleteLastEmbed(self):
+        doc = self.doc("http://localhost/2")
+        doc.embed('root', self.doc("http://localhost/"))
+        doc.embed('child', self.doc("http://localhost/2/1"))
+
+        target_doc = self.doc("http://localhost/2")
+
+        doc.delete_embedded('root')
+        doc.delete_embedded('child')
+
+        self.assertEquals(target_doc.as_object(), doc.as_object())
+
+    def testDeleteIndividualEmbeds(self):
+        doc = self.doc("http://localhost/2")
+        doc.embed('root', self.doc("http://localhost/"))
+        doc.embed('child', self.doc("http://localhost/2/1"))
+        doc.embed('child', self.doc("http://localhost/2/2"))
+        doc.embed('child', self.doc("http://localhost/2/3"))
+
+        doc2 = self.doc("http://localhost/2")
+        doc2.embed('root', self.doc("http://localhost/"))
+        doc2.embed('child', self.doc("http://localhost/2/2"))
+        doc2.embed('child', self.doc("http://localhost/2/3"))
+
+        doc3 = self.doc("http://localhost/2")
+        doc3.embed('root', self.doc("http://localhost/"))
+        doc3.embed('child', self.doc("http://localhost/2/2"))
+
+        doc4 = self.doc("http://localhost/2")
+        doc4.embed('root', self.doc("http://localhost/"))
+
+        doc5 = self.doc("http://localhost/2")
+
+        doc.delete_embedded("child", "http://localhost/2/1")
+        self.assertEquals(doc2.as_object(), doc.as_object())
+
+        doc.delete_embedded("child", "http://localhost/2/3")
+        self.assertEquals(doc3.as_object(), doc.as_object())
+        
+        doc.delete_embedded("child", "http://localhost/2/2")
+        self.assertEquals(doc4.as_object(), doc.as_object())
+
+        doc.delete_embedded("root", "http://localhost/")
+        self.assertEquals(doc5.as_object(), doc.as_object())
+
+    def testDeleteEmbedsWithoutRel(self):
+        doc = self.doc("http://localhost/3")
+        doc.embed('child', self.doc("http://localhost/3/1"))
+        doc.embed('child', self.doc("http://localhost/3/2"))
+        doc.embed('favorite', self.doc("http://localhost/3/1"))
+
+        target_doc = self.doc("http://localhost/3")
+        target_doc.embed('child', self.doc("http://localhost/3/2"))
+
+        doc.delete_embedded(self_href="http://localhost/3/1")
+
+        self.assertEquals(target_doc.as_object(), doc.as_object())
+
+    def testDeleteAllEmbeds(self):
+        doc = self.doc("http://localhost/3")
+        doc.embed('child', self.doc("http://localhost/3/1"))
+        doc.embed('child', self.doc("http://localhost/3/2"))
+        doc.embed('favorite', self.doc("http://localhost/3/1"))
+
+        target_doc = self.doc("http://localhost/3")
+
+        doc.delete_embedded()
+
+        self.assertEquals(target_doc.as_object(), doc.as_object())
 
 
 if __name__ == '__main__':
