@@ -615,11 +615,15 @@ class EmbedTest(unittest.TestCase):
                           self.doc.embedded['item'])
 
 
+def make_doc(href):
+    result = dougrain.Document.empty("http://localhost")
+    result.add_link("self", result.link(href))
+    return result
+
+
 class DeleteEmbeddedTests(unittest.TestCase):
     def doc(self, href):
-        doc = dougrain.Document.empty("http://localhost")
-        doc.add_link("self", doc.link(href))
-        return doc
+        return make_doc(href)
 
     def testDeleteOnlyEmbedForRel(self):
         doc = self.doc("http://localhost/2")
@@ -720,6 +724,36 @@ class DeleteEmbeddedTests(unittest.TestCase):
         doc.delete_embedded()
 
         self.assertEquals(target_doc.as_object(), doc.as_object())
+
+
+class CurieMutationTest(unittest.TestCase):
+    def testSetCurie(self):
+        doc = make_doc("http://localhost/3")
+        doc.set_curie('rel', "http://localhost/rels/{relation}")
+
+        new_doc = dougrain.Document(doc.as_object(), doc.relative_to_url)
+        self.assertEquals("http://localhost/rels/foo",
+                          new_doc.expand_curie("rel:foo"))
+
+    def testReplaceCurie(self):
+        doc = make_doc("http://localhost/3")
+        doc.set_curie('rel', "http://localhost/rels/{relation}")
+        doc.set_curie('rel', "http://localhost/RELS/{relation}.html")
+
+        new_doc = dougrain.Document(doc.as_object(), doc.relative_to_url)
+        self.assertEquals("http://localhost/RELS/foo.html",
+                          new_doc.expand_curie("rel:foo"))
+
+    def testDropCurie(self):
+        doc = make_doc("http://localhost/3")
+        doc.set_curie('rel', "http://localhost/rels/{relation}")
+        doc.set_curie('tm', "http://www.touchmachine.com/{relation}.html")
+        doc.drop_curie('rel')
+
+        new_doc = dougrain.Document(doc.as_object(), doc.relative_to_url)
+        self.assertEquals("rel:foo", doc.expand_curie("rel:foo"))
+        self.assertEquals("http://www.touchmachine.com/index.html",
+                          new_doc.expand_curie("tm:index"))
 
 
 if __name__ == '__main__':

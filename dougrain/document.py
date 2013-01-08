@@ -239,6 +239,18 @@ class Document(object):
         if not self.o['_embedded']:
             del self.o['_embedded']
 
+    def set_curie(self, name, href):
+        self.add_link('curie', self.link(href, name=name))
+
+    @mutator
+    def drop_curie(self, name):
+        curies = self.o['_links']['curie']
+        
+        for i, curie in enumerate(curies):
+            if curie['name'] == name:
+                del curies[i]
+                break
+
     def __eq__(self, other):
         if not isinstance(other, Document):
             return False
