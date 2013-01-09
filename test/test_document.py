@@ -752,5 +752,24 @@ class CurieMutationTest(unittest.TestCase):
                           new_doc.expand_curie("tm:index"))
 
 
+class CurieHidingTests(unittest.TestCase):
+    def testCuriesAreNotLinks(self):
+        doc = dougrain.Document({
+            '_links': {
+                'curie': {
+                    'href': "http://localhost/rel/{relation}",
+                    'name': "rel"
+                },
+                'self': {
+                    'href': "http://localhost/0"
+                }
+            }
+        }, "http://localhost/0")
+
+        self.assertFalse('curie' in doc.links)
+                
+
+
+
 if __name__ == '__main__':
     unittest.main()

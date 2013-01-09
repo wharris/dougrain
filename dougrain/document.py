@@ -63,6 +63,8 @@ class Document(object):
             links = {}
 
             for key, value in self.o.get("_links", {}).iteritems():
+                if key == 'curie':
+                    continue
                 links[key] = link.Link.from_object(value, self.relative_to_url)
 
             return links
@@ -72,7 +74,10 @@ class Document(object):
             if self.parent_curie is not None:
                 result.update(self.parent_curie)
 
-            curies = self.links.get('curie', [])
+            curies = link.Link.from_object(
+                self.o.get('_links', {}).get('curie', []),
+                self.relative_to_url)
+
             if not isinstance(curies, list):
                 curies = [curies]
 
