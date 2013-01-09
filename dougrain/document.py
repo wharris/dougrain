@@ -50,49 +50,49 @@ class Document(object):
         self.relative_to_url = relative_to_url
         self.prepare_cache()
 
-    def attrs_cache(self):
-        attrs = dict(self.o)
-        attrs['_links'] = None
-        del attrs['_links']
-        attrs['_embedded'] = None
-        del attrs['_embedded']
-        return attrs
-
-    def links_cache(self):
-        links = {}
-
-        for key, value in self.o.get("_links", {}).iteritems():
-            links[key] = link.Link.from_object(value, self.relative_to_url)
-
-        return links
-
-    def load_curie_collection(self):
-        result = curie.CurieCollection()
-        if self.parent_curie is not None:
-            result.update(self.parent_curie)
-
-        curies = self.links.get('curie', [])
-        if not isinstance(curies, list):
-            curies = [curies]
-
-        for curie_link in curies:
-            result[curie_link.name] = curie_link
-
-        return result
-
-    def embedded_cache(self):
-        embedded = {}
-        for key, value in self.o.get("_embedded", {}).iteritems():
-            embedded[key] = self.from_object(value,
-                                             self.relative_to_url,
-                                             self.curie)
-        return embedded
-
     def prepare_cache(self):
-        self.attrs = self.attrs_cache()
-        self.links = self.links_cache()
-        self.curie = self.load_curie_collection()
-        self.embedded = self.embedded_cache()
+        def attrs_cache():
+            attrs = dict(self.o)
+            attrs['_links'] = None
+            del attrs['_links']
+            attrs['_embedded'] = None
+            del attrs['_embedded']
+            return attrs
+
+        def links_cache():
+            links = {}
+
+            for key, value in self.o.get("_links", {}).iteritems():
+                links[key] = link.Link.from_object(value, self.relative_to_url)
+
+            return links
+
+        def load_curie_collection():
+            result = curie.CurieCollection()
+            if self.parent_curie is not None:
+                result.update(self.parent_curie)
+
+            curies = self.links.get('curie', [])
+            if not isinstance(curies, list):
+                curies = [curies]
+
+            for curie_link in curies:
+                result[curie_link.name] = curie_link
+
+            return result
+
+        def embedded_cache():
+            embedded = {}
+            for key, value in self.o.get("_embedded", {}).iteritems():
+                embedded[key] = self.from_object(value,
+                                                 self.relative_to_url,
+                                                 self.curie)
+            return embedded
+
+        self.attrs = attrs_cache()
+        self.links = links_cache()
+        self.curie = load_curie_collection()
+        self.embedded = embedded_cache()
         self.rels = Relationships(self.links, self.embedded, self.curie)
 
     def url(self):
