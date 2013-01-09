@@ -8,13 +8,10 @@ class ParseSimpleTest(unittest.TestCase):
         self.doc = dougrain.Document.from_object({"name": "David Bowman"})
 
     def testParseSimple(self):
-        self.assertEquals(self.doc.name, "David Bowman")
+        self.assertEquals(self.doc.attrs['name'], "David Bowman")
 
     def testHasEmptyLinks(self):
         self.assertEquals(self.doc.links, {})
-
-    def testHasAttrs(self):
-        self.assertEquals(self.doc.attrs["name"], "David Bowman")
 
 
 class ParseLinksTest(unittest.TestCase):
@@ -104,12 +101,13 @@ class ParseEmbeddedObjectsTest(unittest.TestCase):
 
     def testLoadsSingleEmbeddedObject(self):
         foo = self.doc.embedded["foo"]
-        self.assertEquals("Foo", foo.name)
-        self.assertEquals(88888888, foo.size)
+        self.assertEquals("Foo", foo.attrs['name'])
+        self.assertEquals(88888888, foo.attrs['size'])
 
     def testLoadsArrayOfEmbeddedObjects(self):
         self.assertEquals(["Bar 1", "Bar 2"],
-                          [bar.title for bar in self.doc.embedded['bar']])
+                          [bar.attrs['title']
+                           for bar in self.doc.embedded['bar']])
 
     def testLoadsLinksInEmbeddedObject(self):
         link = self.doc.embedded["bundy"].links["next"]
@@ -258,7 +256,7 @@ class RelsTest(unittest.TestCase):
         self.assertTrue(consumer_role in self.doc.rels)
         consumer = self.doc.rels[consumer_role][0]
         self.assertEquals("http://localhost/clients/1", consumer.url())
-        self.assertEquals("Client 1", consumer.name)
+        self.assertEquals("Client 1", consumer.attrs['name'])
 
     def testHasApplicationLinkAndEmbeddedRels(self):
         application_role = self.doc.expand_curie('role:application')
@@ -315,7 +313,6 @@ class AttributeMutationTests(unittest.TestCase):
         doc = dougrain.Document.empty()
         doc.set_attribute('foo', "bar")
 
-        self.assertEquals("bar", doc.foo)
         self.assertEquals("bar", doc.attrs['foo'])
 
     def testSetAttributeUpdatesAttribute(self):
@@ -324,7 +321,6 @@ class AttributeMutationTests(unittest.TestCase):
 
         doc.set_attribute('foo', "bundy")
 
-        self.assertEquals("bundy", doc.foo)
         self.assertEquals("bundy", doc.attrs['foo'])
 
     def testRemoveAttributeRemovesAttribute(self):

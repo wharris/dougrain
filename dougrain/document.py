@@ -38,7 +38,6 @@ def mutator(fn):
         try:
             return fn(self, *args, **kwargs)
         finally:
-            self.clear_cache()
             self.prepare_cache()
 
     return deco
@@ -50,15 +49,6 @@ class Document(object):
         self.parent_curie = parent_curie
         self.relative_to_url = relative_to_url
         self.prepare_cache()
-
-    TO_SAVE = "o parent_curie relative_to_url".split()
-
-    def clear_cache(self):
-        saves = dict((key, getattr(self, key))
-                     for key in self.TO_SAVE)
-        self.__dict__.clear()
-        for key in self.TO_SAVE:
-            setattr(self, key, saves[key])
 
     def attrs_cache(self):
         attrs = dict(self.o)
@@ -100,7 +90,6 @@ class Document(object):
 
     def prepare_cache(self):
         self.attrs = self.attrs_cache()
-        self.__dict__.update(self.attrs)
         self.links = self.links_cache()
         self.curie = self.load_curie_collection()
         self.embedded = self.embedded_cache()
