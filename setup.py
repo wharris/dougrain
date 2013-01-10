@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# Copyright (c) 2013 Will Harris
+# See the file license.txt for copying permission.
 
 from distutils.core import setup
 

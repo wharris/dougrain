@@ -1,4 +1,6 @@
-#!/usr/bin/python
+# Copyright (c) 2013 Will Harris
+# See the file license.txt for copying permission.
+
 import urlparse
 import re
 import uritemplate
