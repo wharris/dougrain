@@ -22,7 +22,7 @@ setup(
     classifiers = [
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD Licencse',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Operating System :: POSIX',
         'Topic :: Internet :: WWW/HTTP',
