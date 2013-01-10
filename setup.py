@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
-import dougrain
+
+VERSION = "0.1"
 
 base_url = "http://github.com/wharris/dougrain/"
 
 setup(
     name = 'dougrain',
-    version = dougrain.__version__,
+    version = VERSION,
     description = 'HAL JSON parser and generator',
     author = 'Will Harris',
     author_email = 'will@greatlibrary.net',
