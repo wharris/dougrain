@@ -1,5 +1,8 @@
 # Copyright (c) 2013 Will Harris
 # See the file license.txt for copying permission.
+"""
+Manipulating HAL documents.
+"""
 
 import urlparse
 import itertools
@@ -9,6 +12,22 @@ import UserDict
 from functools import wraps
 
 class Relationships(UserDict.DictMixin):
+    """Merged view of relationships from a HAL document.
+
+    Relationships, that is links and embedded documents, are presented as a
+    dictionary-like object mapping the full URI of the relationship type to a
+    list of relationships.
+    
+    If there are both embedded documents and links for the same relationship
+    type, the embedded documents will be before the links. Otherwise,
+    relationships are presented in the order they appear in their respective
+    collection.
+
+    Relationionships are deduplicated by their URL, as defined by their `self`
+    link in the case of embedded documents and by their `href` in the case of
+    links. Only the first relationship with that URL will be included.
+    
+    """
     def __init__(self, links, embedded, curie):
         self.rels = {}
 
