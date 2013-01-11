@@ -1,37 +1,50 @@
-# Dougrain
+Dougrain
+========
 
-Dougrain is a Python library to help you work with the JSON varient of the
-[Hypertext Application Language][halhome] as defined in the [JSON Hypermedia
-API Language Internet Draft][halspec]. It uses Python objects to represent the
-JSON document, so you can use it with simplejson or the json module from the
-standard library.
+Dougrain is a Python library to help you work with the JSON varient of
+the `Hypertext Application
+Language <http://stateless.co/hal_specification.html>`_ as defined in
+the `JSON Hypermedia API Language Internet
+Draft <http://tools.ietf.org/html/draft-kelly-json-hal-03>`_. It uses
+Python objects to represent the JSON document, so you can use it with
+simplejson or the json module from the standard library.
 
-[halhome]: http://stateless.co/hal_specification.html
-[halspec]: http://tools.ietf.org/html/draft-kelly-json-hal-03
+ Status
+-------
 
-## Status
+This is an pre-release version. The API may have have breaking changes
+in the future.
 
-This is an pre-release version. The API may have have breaking changes in the
-future.
+ Installation
+-------------
 
-## Installation
+::
 
     $ cd dougrain
     $ pip install uritemplate
     $ python setup.py install
 
-## Testing
+ Testing
+--------
+
+::
 
     $ pip install nose
     $ nosetests
 
-The script, `autotest`, uses watchdog to run the tests automatically whenever the source changes, which can be useful for development:
+The script, ``autotest``, uses watchdog to run the tests automatically
+whenever the source changes, which can be useful for development:
+
+::
 
     $ pip install argcomplete
     $ pip install watchdog
     $ ./autotest
 
-## Example
+Example
+-------
+
+::
 
     >>> from dougrain import Document
     >>> import json
