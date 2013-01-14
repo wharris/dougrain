@@ -70,6 +70,12 @@ class Relationships(UserDict.DictMixin):
          
 
 def mutator(fn):
+    """Decorator for `Document` methods that change the document.
+
+    This decorator ensures that the document's caches are kept in sync
+    when changes are made.
+    
+    """
     @wraps(fn)
     def deco(self, *args, **kwargs):
         try:
@@ -81,6 +87,28 @@ def mutator(fn):
 
 
 class Document(object):
+    """Represents a HAL document.
+
+    Constructors:
+
+    - `Document.empty(relative_to_url=None)`: create an empty `Document`.
+    - `Document.from_object(o, relative_to_url=None, parent_curie=None)`:
+      create a document from a dictionary.
+
+    Public Instance Attributes:
+
+    - `attrs`: `dict` containing the properties of the HAL document,
+               excluding `_links` and `_embedded`. `attrs` should be treated
+               as read-only.
+    - `links`: `dict` containing the document's links, excluding `curie`.
+               Each rel is mapped to a `Link` instance or a list of `Link`
+               instances. `links` should be treated as read-only.
+    - `embedded`: dictionary containing the document's embedded resources.
+                  Each rel is mapped to a `Document` instance.
+    - `rels`: a `Relationships` instance holding a merged view of the
+              relationships from the document.
+
+    """
     def __init__(self, o, relative_to_url, parent_curie=None):
         self.o = o
         self.parent_curie = parent_curie
