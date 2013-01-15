@@ -115,13 +115,14 @@ class Document(object):
         self.relative_to_url = relative_to_url
         self.prepare_cache()
 
+    RESERVED_ATTRIBUTE_NAMES = ('_links', '_embedded')
+
     def prepare_cache(self):
         def attrs_cache():
             attrs = dict(self.o)
-            attrs['_links'] = None
-            del attrs['_links']
-            attrs['_embedded'] = None
-            del attrs['_embedded']
+            for name in self.RESERVED_ATTRIBUTE_NAMES:
+                attrs[name] = None
+                del attrs[name]
             return attrs
 
         def links_cache():
@@ -216,14 +217,14 @@ class Document(object):
         is replaced with the value in `value`.
 
         """
-        if key in ('_links', '_embedded'):
+        if key in self.RESERVED_ATTRIBUTE_NAMES:
             return
         self.o[key] = value
 
     @mutator
     def delete_attribute(self, key):
-        if key in ('_links', '_embedded'):
-            return
+        if key in self.RESERVED_ATTRIBUTE_NAMES:
+            raise KeyError(key)
         del self.o[key]
 
     def link(self, href, **kwargs):

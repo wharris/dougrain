@@ -795,8 +795,10 @@ class EdgeCasesTests(unittest.TestCase):
                                                          "http://localhost"))
         doc.add_link('self', doc.link("/1"))
 
-        doc.delete_attribute('_links')
-        doc.delete_attribute('_embedded')
+        with self.assertRaises(KeyError):
+            doc.delete_attribute('_links')
+        with self.assertRaises(KeyError):
+            doc.delete_attribute('_embedded')
 
         self.assertFalse('_links' in doc.attrs)
         self.assertEquals("http://localhost/1", doc.url())
