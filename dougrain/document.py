@@ -166,6 +166,13 @@ class Document(object):
         self.rels = Relationships(self.links, self.embedded, self.curie)
 
     def url(self):
+        """Returns the URL for the document based on the `self` link.
+
+        This method returns the `href` of the document's `self` link if it
+        has one, or `None` if the document lacks a `self` link, or the
+        `href` of the document's first `self` link if it has more than one.
+        
+        """
         if not 'self' in self.links:
             return None
 
@@ -178,9 +185,19 @@ class Document(object):
         return self_link.url()
 
     def expand_curie(self, link):
+        """Returns the expansion of a CURIE value.
+
+        Arguments:
+        - `link`: a string holding a curie value to expand.
+
+        This method attempts to expand `link` using the document's `curie`
+        collection (see `curie.CurieCollection.expand`).
+
+        """
         return self.curie.expand(link)
 
     def as_object(self):
+        """Returns a dictionary representing the HAL JSON document."""
         return self.o
 
     @mutator
