@@ -122,6 +122,8 @@ class Document(object):
 
     @mutator
     def set_attribute(self, key, value):
+        if key in ('_links', '_embedded'):
+            return
         self.o[key] = value
 
     @mutator
