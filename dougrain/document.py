@@ -202,6 +202,20 @@ class Document(object):
 
     @mutator
     def set_attribute(self, key, value):
+        """Set an attribute on the document.
+
+        Calling code should use this method to add and modify attributes
+        on the document.
+
+        If `key` is `"_links"` or `"_embedded"` this method will silently
+        fail.
+
+        If there is no attribute with the name in `key`, a new attribute is
+        created with the name from `key` and the value from `value`. If
+        the document already has an attribute with that name, it's value
+        is replaced with the value in `value`.
+
+        """
         if key in ('_links', '_embedded'):
             return
         self.o[key] = value
