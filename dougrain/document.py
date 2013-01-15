@@ -206,7 +206,7 @@ class Document(object):
         """Set an attribute on the document.
 
         Calling code should use this method to add and modify attributes
-        on the document.
+        on the document instead of modifying `attrs` directly.
 
         If `key` is `"_links"` or `"_embedded"` this method will silently
         fail.
@@ -223,15 +223,43 @@ class Document(object):
 
     @mutator
     def delete_attribute(self, key):
+        """Remove an attribute from the document.
+
+        Calling code should use this method to remove attributes on the
+        document instead of modifying `attrs` directly.
+
+        If there is an attribute with the name in `key`, it will be removed.
+        Otherwise, a `KeyError` will be thrown.
+
+        """
         if key in self.RESERVED_ATTRIBUTE_NAMES:
             raise KeyError(key)
         del self.o[key]
 
     def link(self, href, **kwargs):
+        """Retuns a new link relative to this document."""
         return link.Link(dict(href=href, **kwargs), self.relative_to_url)
 
     @mutator
     def add_link(self, rel, link):
+        """Adds a link to the document.
+
+        Calling code should use this method to add links instead of
+        modifying `links` directly.
+        
+        This method adds the given `link` to the document with the given
+        `rel`. If one or more links are already present for that `rel`, the
+        new link will be added to the existing links.
+
+        Arguments:
+
+        - `rel`: a string specifying the rel of the link. `rel` should be a
+          well-known link relation name from the IANA registry
+          (http://www.iana.org/assignments/link-relations/link-relations.xml),
+          a full URI, or a CURIE.
+        - `link`: a `Link` describing the link to add.
+          
+        """
         links = self.o.setdefault('_links', {})
         new_link = link.as_object()
         if rel not in links:
