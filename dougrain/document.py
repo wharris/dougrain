@@ -168,7 +168,14 @@ class Document(object):
     def url(self):
         if not 'self' in self.links:
             return None
-        return self.links['self'].url()
+
+        self_link = self.links['self']
+
+        if isinstance(self_link, list):
+            for link in self_link:
+                return link.url()
+
+        return self_link.url()
 
     def expand_curie(self, link):
         return self.curie.expand(link)

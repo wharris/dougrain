@@ -771,6 +771,13 @@ class CurieHidingTests(unittest.TestCase):
         self.assertFalse('curie' in doc.links)
                 
 
+class EdgeCasesTests(unittest.TestCase):
+    def testUrlOfDocumentWithMultipleSelfLinksFromFirstSelfLink(self):
+        doc = dougrain.Document.empty("http://localhost")
+        doc.add_link('self', doc.link("/1"))
+        doc.add_link('self', doc.link("/2"))
+        self.assertEquals("http://localhost/1", doc.url())
+
 
 
 if __name__ == '__main__':
