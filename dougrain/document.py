@@ -128,6 +128,8 @@ class Document(object):
 
     @mutator
     def delete_attribute(self, key):
+        if key in ('_links', '_embedded'):
+            return
         del self.o[key]
 
     def link(self, href, **kwargs):

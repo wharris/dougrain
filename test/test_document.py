@@ -780,7 +780,7 @@ class EdgeCasesTests(unittest.TestCase):
 
     def testSetReservedAttributeSilentlyFails(self):
         doc = dougrain.Document.empty("http://localhost")
-        doc.set_attribute('_links', {'self': {'href': "/"}})
+        doc.set_attribute('_links', {'self': {'href': "/1"}})
         doc.set_attribute('_embedded', {'child': {'foo': "bar"}})
 
         self.assertFalse('_links' in doc.attrs)
@@ -789,7 +789,20 @@ class EdgeCasesTests(unittest.TestCase):
         self.assertFalse('_embedded' in doc.attrs)
         self.assertFalse('child' in doc.embedded)
 
+    def testDeleteReservedAttributeSilentlyFails(self):
+        doc = dougrain.Document.empty("http://localhost")
+        doc.embed('child', dougrain.Document.from_object({'foo': "bar"},
+                                                         "http://localhost"))
+        doc.add_link('self', doc.link("/1"))
 
+        doc.delete_attribute('_links')
+        doc.delete_attribute('_embedded')
+
+        self.assertFalse('_links' in doc.attrs)
+        self.assertEquals("http://localhost/1", doc.url())
+
+        self.assertFalse('_embedded' in doc.attrs)
+        self.assertEquals("bar", doc.embedded['child'].attrs['foo'])
 
 
 if __name__ == '__main__':
