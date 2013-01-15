@@ -202,10 +202,14 @@ class Document(object):
 
     @mutator
     def set_attribute(self, key, value):
+        if key in ('_links', '_embedded'):
+            return
         self.o[key] = value
 
     @mutator
     def delete_attribute(self, key):
+        if key in ('_links', '_embedded'):
+            return
         del self.o[key]
 
     def link(self, href, **kwargs):
