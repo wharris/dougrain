@@ -17,7 +17,7 @@ setup(
     url = base_url,
     packages = ['dougrain'],
     provides = ['dougrain'],
-    long_description=open("README.md").read(),
+    long_description=open("README.rst").read(),
     install_requires = ['uritemplate >= 0.5.1'],
     classifiers = [
         'Development Status :: 3 - Alpha',
