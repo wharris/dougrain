@@ -24,23 +24,24 @@ class Relationships(UserDict.DictMixin):
     collection.
 
     Relationionships are deduplicated by their URL, as defined by their
-    `self` link in the case of embedded documents and by their `href` in the
-    case of links. Only the first relationship with that URL will be
+    ``self`` link in the case of embedded documents and by their ``href``
+    in the case of links. Only the first relationship with that URL will be
     included.
     
     """
 
     def __init__(self, links, embedded, curie):
-        """Initialize a `Relationships` object.
+        """Initialize a ``Relationships`` object.
 
         Parameters:
 
-        - `links`:      a dictionary mapping a relationship type name to a
-                        `Link` instance or a `list` of `Link` instances.
-        - `embedded`:   a dictionary mapping a relationship type name to a
-                        `Document` instance or a `list` of `Document`
+        - ``links``:    a dictionary mapping a relationship type name to a
+                        ``Link`` instance or a ``list`` of ``Link``
                         instances.
-        - `curie`:      a `CurieCollection` instance used to expand
+        - ``embedded``: a dictionary mapping a relationship type name to a
+                        ``Document`` instance or a ``list`` of ``Document``
+                        instances.
+        - ``curie``:    a ``CurieCollection`` instance used to expand
                         relationship type names into full relationship type
                         URLs.
 
@@ -70,7 +71,7 @@ class Relationships(UserDict.DictMixin):
          
 
 def mutator(fn):
-    """Decorator for `Document` methods that change the document.
+    """Decorator for ``Document`` methods that change the document.
 
     This decorator ensures that the document's caches are kept in sync
     when changes are made.
@@ -91,21 +92,23 @@ class Document(object):
 
     Constructors:
 
-    - `Document.empty(relative_to_url=None)`: create an empty `Document`.
-    - `Document.from_object(o, relative_to_url=None, parent_curie=None)`:
-      create a document from a dictionary.
+    - ``Document.empty(relative_to_url=None)``:
+        create an empty ``Document``.
+    - ``Document.from_object(o, relative_to_url=None, parent_curie=None)``:
+        create a document from a dictionary.
 
     Public Instance Attributes:
 
-    - `attrs`: `dict` containing the properties of the HAL document,
-               excluding `_links` and `_embedded`. `attrs` should be treated
-               as read-only.
-    - `links`: `dict` containing the document's links, excluding `curie`.
-               Each rel is mapped to a `Link` instance or a list of `Link`
-               instances. `links` should be treated as read-only.
-    - `embedded`: dictionary containing the document's embedded resources.
-                  Each rel is mapped to a `Document` instance.
-    - `rels`: a `Relationships` instance holding a merged view of the
+    - ``attrs``: ``dict`` containing the properties of the HAL document,
+                 excluding ``_links`` and ``_embedded``. ``attrs`` should
+                 be treated as read-only.
+    - ``links``: ``dict`` containing the document's links, excluding
+                 ``curie``. Each rel is mapped to a ``Link`` instance or a list
+                 of ``Link`` instances. ``links`` should be treated as
+                 read-only.
+    - ``embedded``: dictionary containing the document's embedded
+                    resources. Each rel is mapped to a ``Document`` instance.
+    - ``rels``: a ``Relationships`` instance holding a merged view of the
               relationships from the document.
 
     """
@@ -167,11 +170,11 @@ class Document(object):
         self.rels = Relationships(self.links, self.embedded, self.curie)
 
     def url(self):
-        """Returns the URL for the document based on the `self` link.
+        """Returns the URL for the document based on the ``self`` link.
 
-        This method returns the `href` of the document's `self` link if it
-        has one, or `None` if the document lacks a `self` link, or the
-        `href` of the document's first `self` link if it has more than one.
+        This method returns the ``href`` of the document's ``self`` link if it
+        has one, or ``None`` if the document lacks a ``self`` link, or the
+        ``href`` of the document's first ``self`` link if it has more than one.
         
         """
         if not 'self' in self.links:
@@ -189,10 +192,10 @@ class Document(object):
         """Returns the expansion of a CURIE value.
 
         Arguments:
-        - `link`: a string holding a curie value to expand.
+        - ``link``: a string holding a curie value to expand.
 
-        This method attempts to expand `link` using the document's `curie`
-        collection (see `curie.CurieCollection.expand`).
+        This method attempts to expand ``link`` using the document's ``curie``
+        collection (see ``curie.CurieCollection.expand``).
 
         """
         return self.curie.expand(link)
@@ -206,15 +209,15 @@ class Document(object):
         """Set an attribute on the document.
 
         Calling code should use this method to add and modify attributes
-        on the document instead of modifying `attrs` directly.
+        on the document instead of modifying ``attrs`` directly.
 
-        If `key` is `"_links"` or `"_embedded"` this method will silently
+        If ``key`` is ``"_links"`` or ``"_embedded"`` this method will silently
         fail.
 
-        If there is no attribute with the name in `key`, a new attribute is
-        created with the name from `key` and the value from `value`. If
+        If there is no attribute with the name in ``key``, a new attribute is
+        created with the name from ``key`` and the value from ``value``. If
         the document already has an attribute with that name, it's value
-        is replaced with the value in `value`.
+        is replaced with the value in ``value``.
 
         """
         if key in self.RESERVED_ATTRIBUTE_NAMES:
@@ -226,10 +229,10 @@ class Document(object):
         """Remove an attribute from the document.
 
         Calling code should use this method to remove attributes on the
-        document instead of modifying `attrs` directly.
+        document instead of modifying ``attrs`` directly.
 
-        If there is an attribute with the name in `key`, it will be removed.
-        Otherwise, a `KeyError` will be thrown.
+        If there is an attribute with the name in ``key``, it will be removed.
+        Otherwise, a ``KeyError`` will be thrown.
 
         """
         if key in self.RESERVED_ATTRIBUTE_NAMES:
@@ -245,19 +248,19 @@ class Document(object):
         """Adds a link to the document.
 
         Calling code should use this method to add links instead of
-        modifying `links` directly.
+        modifying ``links`` directly.
         
-        This method adds the given `link` to the document with the given
-        `rel`. If one or more links are already present for that `rel`, the
+        This method adds the given ``link`` to the document with the given
+        ``rel``. If one or more links are already present for that ``rel``, the
         new link will be added to the existing links.
 
         Arguments:
 
-        - `rel`: a string specifying the rel of the link. `rel` should be a
+        - ``rel``: a string specifying the rel of the link. ``rel`` should be a
           well-known link relation name from the IANA registry
           (http://www.iana.org/assignments/link-relations/link-relations.xml),
           a full URI, or a CURIE.
-        - `link`: a `Link` describing the link to add.
+        - ``link``: a ``Link`` describing the link to add.
           
         """
         links = self.o.setdefault('_links', {})
