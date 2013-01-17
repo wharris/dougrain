@@ -562,6 +562,31 @@ class DeleteLinkTests(unittest.TestCase):
 
         self.assertEquals(target, doc.as_object())
 
+    def testDeleteLinkWithNoMatchingRel(self):
+        initial = {
+            '_links': {
+                'self': {'href': "http://localhost/3"},
+                'child': [{'href': "http://localhost/3/1"},
+                          {'href': "http://localhost/3/2"}],
+                'favorite': {'href': "http://localhost/3/1"}
+            }
+        }
+
+        target = {
+            '_links': {
+                'self': {'href': "http://localhost/3"},
+                'child': [{'href': "http://localhost/3/1"},
+                          {'href': "http://localhost/3/2"}],
+                'favorite': {'href': "http://localhost/3/1"}
+            }
+        }
+
+        doc = dougrain.Document.from_object(initial, "http://localhost/")
+
+        doc.delete_link(rel="".join(doc.links.keys()))
+
+        self.assertEquals(target, doc.as_object())
+
 
 class EmbedTest(unittest.TestCase):
     def setUp(self):
