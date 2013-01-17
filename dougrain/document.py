@@ -283,7 +283,7 @@ class Document(object):
         modyfying ``links`` directly.
 
         The optional arguments, ``rel`` and ``href`` are used to select the
-        links that will be deleted. If none of the optional arguments are
+        links that will be deleted. If neither of the optional arguments are
         given, this method deletes every link in the document. If ``rel`` is
         given, only links for the matching rel are deleted. If ``href`` is
         given, only links with a matching ``href`` are deleted.  If both
@@ -292,7 +292,7 @@ class Document(object):
 
         Arguments:
 
-        - ``rel``: an option string specifying the rel name of the links to
+        - ``rel``: an optional string specifying the rel name of the links to
                    be deleted.
         - ``href``: optionally, a string specifying the ``href`` of the links
                     to be deleted, or a callable that returns true when its
@@ -364,6 +364,26 @@ class Document(object):
 
     @mutator
     def embed(self, rel, other):
+        """Embeds a document inside this document.
+
+        Arguments:
+
+        - ``rel``: a string specifying the rel of the embedded document.
+          ``rel`` should be a well-known link relation name from the IANA
+          registry
+          (http://www.iana.org/assignments/link-relations/link-relations.xml),
+          a full URI, or a CURIE.
+        - ``other``: a ``Document`` instance that will be embedded in this
+          document.
+
+        Calling code should use this method to add embedded documents instead
+        of modifying ``embedded`` directly.
+        
+        This method embeds the given document in this document with the given
+        ``rel``. If one or more documents have already been embedded for that
+        ``rel``, the new document will be added to the existing rel.
+
+        """
         embedded = self.o.setdefault('_embedded', {})
         links_for_rel = embedded.setdefault(rel, [])
 
@@ -379,6 +399,31 @@ class Document(object):
 
     @mutator
     def delete_embedded(self, rel=None, self_href=lambda _: True):
+        """Removes an document embedded in this document.
+
+        Calling code should use this method to remove embedded documents
+        instead of modyfying ``embedded`` directly.
+
+        The optional arguments, ``rel`` and ``self_href`` are used to select
+        the embedded documents that will be removed. If neither of the optional
+        arguments are given, this method removes every embedded document from
+        this document. If ``rel`` is given, only embedded documents for the
+        matching rel are removed. If ``self_href`` is given, only embedded
+        documents with a ``self`` link matching ``href`` are deleted.  If both
+        ``rel`` and ``self_href`` are given, only embedded documents with
+        matching ``self`` link in the matching rel are removed.
+
+        Arguments:
+
+        - ``rel``: an optional string specifying the rel name of the embedded
+                   documents to be removed.
+        - ``self_href``: optionally, a string specifying the ``href`` of the
+                         ``self`` links of the documents to be removed, or a
+                         callable that returns true when its single argument
+                         matches the ``href`` of the ``self`` link of one of
+                         the documents to be removed.
+
+        """
         if rel is None:
             for rel in self.o['_embedded'].keys():
                 self.delete_embedded(rel, self_href)
