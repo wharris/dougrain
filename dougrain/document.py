@@ -429,6 +429,9 @@ class Document(object):
                 self.delete_embedded(rel, self_href)
             return
 
+        if rel not in self.o['_embedded']:
+            return
+
         if callable(self_href):
             url_filter = self_href
         else:

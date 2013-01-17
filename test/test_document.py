@@ -748,6 +748,23 @@ class DeleteEmbeddedTests(unittest.TestCase):
 
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
+    def testDeleteEmbedWithMissingRel(self):
+        doc = self.doc("http://localhost/3")
+        doc.embed('child', self.doc("http://localhost/3/1"))
+        doc.embed('child', self.doc("http://localhost/3/2"))
+        doc.embed('favorite', self.doc("http://localhost/3/1"))
+
+        target_doc = self.doc("http://localhost/3")
+        target_doc.embed('child', self.doc("http://localhost/3/1"))
+        target_doc.embed('child', self.doc("http://localhost/3/2"))
+        target_doc.embed('favorite', self.doc("http://localhost/3/1"))
+
+        missing_rel = ''.join(doc.embedded.keys()) + '_'
+        doc.delete_embedded(missing_rel)
+
+        self.assertEquals(target_doc.as_object(), doc.as_object())
+
+
 
 class CurieMutationTest(unittest.TestCase):
     def testSetCurie(self):
