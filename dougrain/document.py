@@ -398,44 +398,44 @@ class Document(object):
         embedded[rel] = links_for_rel
 
     @mutator
-    def delete_embedded(self, rel=None, self_href=lambda _: True):
+    def delete_embedded(self, rel=None, href=lambda _: True):
         """Removes an document embedded in this document.
 
         Calling code should use this method to remove embedded documents
         instead of modyfying ``embedded`` directly.
 
-        The optional arguments, ``rel`` and ``self_href`` are used to select
-        the embedded documents that will be removed. If neither of the optional
+        The optional arguments, ``rel`` and ``href`` are used to select the
+        embedded documents that will be removed. If neither of the optional
         arguments are given, this method removes every embedded document from
         this document. If ``rel`` is given, only embedded documents for the
-        matching rel are removed. If ``self_href`` is given, only embedded
-        documents with a ``self`` link matching ``href`` are deleted.  If both
-        ``rel`` and ``self_href`` are given, only embedded documents with
-        matching ``self`` link in the matching rel are removed.
+        matching rel are removed. If ``href`` is given, only embedded documents
+        with a ``self`` link matching ``href`` are deleted.  If both ``rel``
+        and ``href`` are given, only embedded documents with matching ``self``
+        link in the matching rel are removed.
 
         Arguments:
 
         - ``rel``: an optional string specifying the rel name of the embedded
                    documents to be removed.
-        - ``self_href``: optionally, a string specifying the ``href`` of the
-                         ``self`` links of the documents to be removed, or a
-                         callable that returns true when its single argument
-                         matches the ``href`` of the ``self`` link of one of
-                         the documents to be removed.
+        - ``href``: optionally, a string specifying the ``href`` of the
+                    ``self`` links of the documents to be removed, or a
+                    callable that returns true when its single argument matches
+                    the ``href`` of the ``self`` link of one of the documents
+                    to be removed.
 
         """
         if rel is None:
             for rel in self.o['_embedded'].keys():
-                self.delete_embedded(rel, self_href)
+                self.delete_embedded(rel, href)
             return
 
         if rel not in self.o['_embedded']:
             return
 
-        if callable(self_href):
-            url_filter = self_href
+        if callable(href):
+            url_filter = href
         else:
-            url_filter = lambda x: x == self_href
+            url_filter = lambda x: x == href
 
         rel_embeds = self.o['_embedded'][rel]
 

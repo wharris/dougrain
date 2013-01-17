@@ -732,7 +732,7 @@ class DeleteEmbeddedTests(unittest.TestCase):
         target_doc = self.doc("http://localhost/3")
         target_doc.embed('child', self.doc("http://localhost/3/2"))
 
-        doc.delete_embedded(self_href="http://localhost/3/1")
+        doc.delete_embedded(href="http://localhost/3/1")
 
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
