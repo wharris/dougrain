@@ -310,7 +310,7 @@ class Document(object):
             href_filter = lambda x: x == href
 
         links = self.o['_links']
-        links_for_rel = links[rel]
+        links_for_rel = links.setdefault(rel, [])
         if isinstance(links_for_rel, dict):
             links_for_rel = [links_for_rel]
 
