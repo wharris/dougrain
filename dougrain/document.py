@@ -277,6 +277,28 @@ class Document(object):
 
     @mutator
     def delete_link(self, rel=None, href=lambda _: True):
+        """Deletes a links from the document.
+
+        Calling code should use this method to remove links instead of
+        modyfying ``links`` directly.
+
+        The optional arguments, ``rel`` and ``href`` are used to select the
+        links that will be deleted. If none of the optional arguments are
+        given, this method deletes every link in the document. If ``rel`` is
+        given, only links for the matching rel are deleted. If ``href`` is
+        given, only links with a matching ``href`` are deleted.  If both
+        ``rel`` and ``href`` are given, only links with matching ``href`` in
+        the matching rel are delted.
+
+        Arguments:
+
+        - ``rel``: an option string specifying the rel name of the links to
+                   be deleted.
+        - ``href``: optionally, a string specifying the ``href`` of the links
+                    to be deleted, or a callable that returns true when its
+                    single argument is in the set of ``href``s to be deleted.
+
+        """
         if rel is None:
             for rel in self.o['_links'].keys():
                 self.delete_link(rel, href)
