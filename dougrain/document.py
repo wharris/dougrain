@@ -93,9 +93,9 @@ class Document(object):
     Constructors:
 
     - ``Document.empty(relative_to_url=None)``:
-        create an empty ``Document``.
+        returns an empty ``Document``.
     - ``Document.from_object(o, relative_to_url=None, parent_curie=None)``:
-        create a document from a dictionary.
+        returns a new ``Document`` based on a JSON object.
 
     Public Instance Attributes:
 
@@ -332,7 +332,20 @@ class Document(object):
 
     @classmethod
     def from_object(cls, o, relative_to_url=None, parent_curie=None):
+        """Returns a new ``Document`` based on a JSON object.
 
+        Arguments:
+
+        - ``o``: a dictionary holding the deserializated JSON for the new
+                 ``Document``, or a ``list`` of such documents.
+        - ``relative_to_url``: optional URL used as the basis when expanding
+                               relative URLs in the document.
+        - ``parent_curie``: optional ``CurieCollection`` instance holding the
+                            CURIEs of the parent document in which the new
+                            document is to be embedded. Calling code should not
+                            normall provide this argument.
+
+        """
         if isinstance(o, list):
             return map(lambda x: cls.from_object(x, relative_to_url), o)
 
@@ -340,6 +353,13 @@ class Document(object):
 
     @classmethod
     def empty(cls, relative_to_url=None):
+        """Returns an empty ``Document``.
+
+        Arguments:
+
+        - ``relative_to_url``: optional URL used as the basis when expanding
+                               relative URLs in the document.
+        """
         return cls.from_object({}, relative_to_url=relative_to_url)
 
     @mutator
