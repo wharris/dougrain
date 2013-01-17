@@ -460,10 +460,21 @@ class Document(object):
             del self.o['_embedded']
 
     def set_curie(self, name, href):
+        """Sets a CURIE.
+
+        A CURIE link with the given ``name`` and ``href`` is added to the
+        document.
+
+        """
         self.add_link('curie', self.link(href, name=name))
 
     @mutator
     def drop_curie(self, name):
+        """Removes a CURIE.
+
+        The CURIE link with the given name is removed from the document.
+
+        """
         curies = self.o['_links']['curie']
         
         for i, curie in enumerate(curies):
