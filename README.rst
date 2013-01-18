@@ -81,7 +81,7 @@ Example
     'http://localhost/1'
     >>> new_post = Document.empty()
     >>> new_post.set_attribute("name", "Second child")
-    >>> new_post.add_link("self", doc.link("/2"))
+    >>> new_post.add_link("self", "/2")
     >>> new_post.as_object()
     {'_links': {'self': {'href': '/2'}}, 'name': 'Second child'}
     >>> doc.embed('r:post', new_post)

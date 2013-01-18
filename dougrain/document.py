@@ -244,15 +244,19 @@ class Document(object):
         return link.Link(dict(href=href, **kwargs), self.relative_to_url)
 
     @mutator
-    def add_link(self, rel, link):
+    def add_link(self, rel, href, **kwargs):
         """Adds a link to the document.
 
         Calling code should use this method to add links instead of
-        modifying ``links`` directly.
+        modifying the ``links`` attribute directly.
         
-        This method adds the given ``link`` to the document with the given
-        ``rel``. If one or more links are already present for that ``rel``, the
-        new link will be added to the existing links.
+        This method adds a link with the given ``href`` to the document with
+        the given ``rel``. If one or more links are already present for that
+        ``rel``, the new link will be added to the existing links. Any keyword
+        arguments are used to add additional attributes to the JSON object.
+
+        If ``href`` is a ``Link`` object instead of a string, it is added to
+        the document and the keyword arguments are ignored.
 
         Arguments:
 
@@ -260,9 +264,14 @@ class Document(object):
           well-known link relation name from the IANA registry
           (http://www.iana.org/assignments/link-relations/link-relations.xml),
           a full URI, or a CURIE.
-        - ``link``: a ``Link`` describing the link to add.
-          
+        - ``href``: a string containing the ``href`` of the link to add.
+
         """
+        if hasattr(href, 'as_link'):
+            link = href.as_link()
+        else:
+            link = self.link(href, **kwargs)
+
         links = self.o.setdefault('_links', {})
         new_link = link.as_object()
         if rel not in links:
@@ -475,7 +484,7 @@ class Document(object):
         document.
 
         """
-        self.add_link('curie', self.link(href, name=name))
+        self.add_link('curie', href, name=name)
 
     @mutator
     def drop_curie(self, name):

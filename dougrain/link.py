@@ -39,6 +39,9 @@ class Link(object):
 
     def as_object(self):
         return self.o
+    
+    def as_link(self):
+        return self
 
     @classmethod
     def from_object(cls, o, relative_to_url):

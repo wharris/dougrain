@@ -349,13 +349,9 @@ class AttributeMutationTests(unittest.TestCase):
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
 
-class AddLinkTests(unittest.TestCase):
-    def addLinks(self, from_doc, to_doc):
-        for rel, links in from_doc.links.iteritems():
-            if not isinstance(links, list):
-                links = [links]
-            for link in links:
-                to_doc.add_link(rel, link)
+class AddLinkStringTests(unittest.TestCase):
+    def add_link(self, doc, rel, href, **kwargs):
+        doc.add_link(rel, href, **kwargs)
 
     def testAddSimpleLink(self):
         target = {
@@ -367,7 +363,7 @@ class AddLinkTests(unittest.TestCase):
         target_doc = dougrain.Document.from_object(target, "http://localhost/")
 
         doc = dougrain.Document.empty()
-        self.addLinks(target_doc, doc)
+        self.add_link(doc, 'self', "http://localhost/1")
 
         self.assertEquals(target, doc.as_object())
         self.assertEquals(target_doc.links, doc.links)
@@ -383,7 +379,8 @@ class AddLinkTests(unittest.TestCase):
         target_doc = dougrain.Document.from_object(target, "http://localhost/")
 
         doc = dougrain.Document.empty()
-        self.addLinks(target_doc, doc)
+        self.add_link(doc, 'self', "http://localhost/1")
+        self.add_link(doc, 'child', "http://localhost/1/1")
 
         self.assertEquals(target, doc.as_object())
         self.assertEquals(target_doc.links, doc.links)
@@ -400,7 +397,9 @@ class AddLinkTests(unittest.TestCase):
         target_doc = dougrain.Document.from_object(target, "http://localhost/")
 
         doc = dougrain.Document.empty()
-        self.addLinks(target_doc, doc)
+        self.add_link(doc, 'self', "http://localhost/2")
+        self.add_link(doc, 'child', "http://localhost/2/1")
+        self.add_link(doc, 'child', "http://localhost/2/2")
 
         self.assertEquals(target, doc.as_object())
         self.assertEquals(target_doc.links, doc.links)
@@ -418,10 +417,38 @@ class AddLinkTests(unittest.TestCase):
         target_doc = dougrain.Document.from_object(target, "http://localhost/")
 
         doc = dougrain.Document.empty()
-        self.addLinks(target_doc, doc)
+        self.add_link(doc, 'self', "http://localhost/2")
+        self.add_link(doc, 'child', "http://localhost/2/1")
+        self.add_link(doc, 'child', "http://localhost/2/2")
+        self.add_link(doc, 'child', "http://localhost/2/3")
+
+        self.assertEquals(target, doc.as_object())
 
         self.assertEquals(target, doc.as_object())
         self.assertEquals(target_doc.links, doc.links)
+
+    def testAddLinkWithExtraAttributes(self):
+        target = {
+            '_links': {
+                'self': {'href': "http://localhost/2"},
+                'child': [{'href': "http://localhost/2/1",
+                           'label': "First Child"},
+                          {'href': "http://localhost/2/2",
+                           'label': "Second Child"}]
+            }
+        }
+        doc = dougrain.Document.empty()
+        self.add_link(doc, 'self', "http://localhost/2")
+        self.add_link(doc, 'child', "http://localhost/2/1", label="First Child")
+        self.add_link(doc, 'child', "http://localhost/2/2", label="Second Child")
+
+        self.assertEquals(target, doc.as_object())
+
+
+class AddObjectLinkTests(AddLinkStringTests):
+    def add_link(self, doc, rel, href, **kwargs):
+        link = doc.link(href, **kwargs)
+        doc.add_link(rel, link)
 
 
 class DeleteLinkTests(unittest.TestCase):
@@ -648,7 +675,7 @@ class EmbedTest(unittest.TestCase):
 
 def make_doc(href):
     result = dougrain.Document.empty("http://localhost")
-    result.add_link("self", result.link(href))
+    result.add_link('self', href)
     return result
 
 
@@ -831,8 +858,8 @@ class CurieHidingTests(unittest.TestCase):
 class EdgeCasesTests(unittest.TestCase):
     def testUrlOfDocumentWithMultipleSelfLinksFromFirstSelfLink(self):
         doc = dougrain.Document.empty("http://localhost")
-        doc.add_link('self', doc.link("/1"))
-        doc.add_link('self', doc.link("/2"))
+        doc.add_link('self', "/1")
+        doc.add_link('self', "/2")
         self.assertEquals("http://localhost/1", doc.url())
 
     def testSetReservedAttributeSilentlyFails(self):
@@ -850,7 +877,7 @@ class EdgeCasesTests(unittest.TestCase):
         doc = dougrain.Document.empty("http://localhost")
         doc.embed('child', dougrain.Document.from_object({'foo': "bar"},
                                                          "http://localhost"))
-        doc.add_link('self', doc.link("/1"))
+        doc.add_link('self', "/1")
 
         with self.assertRaises(KeyError):
             doc.delete_attribute('_links')
