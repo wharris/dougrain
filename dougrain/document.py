@@ -299,6 +299,9 @@ class Document(object):
                     single argument is in the set of ``href``s to be deleted.
 
         """
+        if not '_links' in self.o:
+            return
+
         if rel is None:
             for rel in self.o['_links'].keys():
                 self.delete_link(rel, href)
@@ -424,6 +427,9 @@ class Document(object):
                     to be removed.
 
         """
+        if '_embedded' not in self.o:
+            return
+
         if rel is None:
             for rel in self.o['_embedded'].keys():
                 self.delete_embedded(rel, href)

@@ -587,6 +587,14 @@ class DeleteLinkTests(unittest.TestCase):
 
         self.assertEquals(target, doc.as_object())
 
+    def testDeleteLinkWithNoLinks(self):
+        doc = dougrain.Document.empty("http://localhost/3")
+        target = dougrain.Document.empty("http://localhost/3")
+
+        doc.delete_link()
+
+        self.assertEquals(target, doc)
+
 
 class EmbedTest(unittest.TestCase):
     def setUp(self):
@@ -764,6 +772,13 @@ class DeleteEmbeddedTests(unittest.TestCase):
 
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
+    def testDeleteEmbedWithNoEmbeds(self):
+        doc = self.doc("http://localhost/3")
+        target_doc = self.doc("http://localhost/3")
+
+        doc.delete_embedded()
+
+        self.assertEquals(target_doc.as_object(), doc.as_object())
 
 
 class CurieMutationTest(unittest.TestCase):
