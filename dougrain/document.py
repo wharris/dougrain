@@ -204,6 +204,10 @@ class Document(object):
         """Returns a dictionary representing the HAL JSON document."""
         return self.o
 
+    def as_link(self):
+        """Returns a `Link` to the document."""
+        return self.links['self']
+
     @mutator
     def set_attribute(self, key, value):
         """Set an attribute on the document.
@@ -244,19 +248,24 @@ class Document(object):
         return link.Link(dict(href=href, **kwargs), self.relative_to_url)
 
     @mutator
-    def add_link(self, rel, href, **kwargs):
+    def add_link(self, rel, target, **kwargs):
         """Adds a link to the document.
 
         Calling code should use this method to add links instead of
         modifying the ``links`` attribute directly.
         
-        This method adds a link with the given ``href`` to the document with
+        This method adds a link to the given ``target`` to the document with
         the given ``rel``. If one or more links are already present for that
-        ``rel``, the new link will be added to the existing links. Any keyword
-        arguments are used to add additional attributes to the JSON object.
+        ``rel``, the new link will be added to the existing links for that rel.
 
-        If ``href`` is a ``Link`` object instead of a string, it is added to
-        the document and the keyword arguments are ignored.
+        If ``target`` is a string, a link is added with ``target`` as its
+        ``href`` attribute and other attributes from the keyword arguments.
+
+        If ``target`` is a ``Link`` object, it is added to the document and the
+        keyword arguments are ignored.
+
+        If ``target`` is a ``Document`` object, ``target``'s ``self`` link is
+        added to this document and the keyword arguments are ignored.
 
         Arguments:
 
@@ -264,13 +273,13 @@ class Document(object):
           well-known link relation name from the IANA registry
           (http://www.iana.org/assignments/link-relations/link-relations.xml),
           a full URI, or a CURIE.
-        - ``href``: a string containing the ``href`` of the link to add.
+        - ``target``: the destination of the link.
 
         """
-        if hasattr(href, 'as_link'):
-            link = href.as_link()
+        if hasattr(target, 'as_link'):
+            link = target.as_link()
         else:
-            link = self.link(href, **kwargs)
+            link = self.link(target, **kwargs)
 
         links = self.o.setdefault('_links', {})
         new_link = link.as_object()

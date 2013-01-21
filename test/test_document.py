@@ -444,11 +444,18 @@ class AddLinkStringTests(unittest.TestCase):
 
         self.assertEquals(target, doc.as_object())
 
-
 class AddObjectLinkTests(AddLinkStringTests):
     def add_link(self, doc, rel, href, **kwargs):
         link = doc.link(href, **kwargs)
         doc.add_link(rel, link)
+
+
+class AddDocumentLinkTests(AddLinkStringTests):
+    def add_link(self, doc, rel, href, **kwargs):
+        target = dougrain.Document.empty(href)
+        self_link = target.link(href, **kwargs)
+        target.add_link('self', self_link)
+        doc.add_link(rel, target)
 
 
 class DeleteLinkTests(unittest.TestCase):
