@@ -439,8 +439,10 @@ class AddLinkStringTests(unittest.TestCase):
         }
         doc = dougrain.Document.empty()
         self.add_link(doc, 'self', "http://localhost/2")
-        self.add_link(doc, 'child', "http://localhost/2/1", label="First Child")
-        self.add_link(doc, 'child', "http://localhost/2/2", label="Second Child")
+        self.add_link(doc, 'child', "http://localhost/2/1",
+                      label="First Child")
+        self.add_link(doc, 'child', "http://localhost/2/2",
+                      label="Second Child")
 
         self.assertEquals(target, doc.as_object())
 
