@@ -15,11 +15,11 @@ class Relationships(UserDict.DictMixin):
     """Merged view of relationships from a HAL document.
 
     Relationships, that is links and embedded documents, are presented as a
-    dictionary-like object mapping the full URI of the relationship type to
-    a list of relationships.
+    dictionary-like object mapping the full URI of the link relationship type
+    to a list of relationships.
     
-    If there are both embedded documents and links for the same relationship
-    type, the embedded documents will be before the links. Otherwise,
+    If there are both embedded documents and links for the same link relation
+    type, the embedded documents will appear before the links. Otherwise,
     relationships are presented in the order they appear in their respective
     collection.
 
@@ -35,14 +35,14 @@ class Relationships(UserDict.DictMixin):
 
         Parameters:
 
-        - ``links``:    a dictionary mapping a relationship type name to a
+        - ``links``:    a dictionary mapping a link relationship type to a
                         ``Link`` instance or a ``list`` of ``Link``
                         instances.
-        - ``embedded``: a dictionary mapping a relationship type name to a
+        - ``embedded``: a dictionary mapping a link relationship type to a
                         ``Document`` instance or a ``list`` of ``Document``
                         instances.
         - ``curie``:    a ``CurieCollection`` instance used to expand
-                        relationship type names into full relationship type
+                        link relationship type into full link relationship type
                         URLs.
 
         """
@@ -103,13 +103,14 @@ class Document(object):
                  excluding ``_links`` and ``_embedded``. ``attrs`` should
                  be treated as read-only.
     - ``links``: ``dict`` containing the document's links, excluding
-                 ``curie``. Each rel is mapped to a ``Link`` instance or a list
-                 of ``Link`` instances. ``links`` should be treated as
-                 read-only.
-    - ``embedded``: dictionary containing the document's embedded
-                    resources. Each rel is mapped to a ``Document`` instance.
+                 ``curie``. Each link relationship type is mapped to a ``Link``
+                 instance or a list of ``Link`` instances. ``links`` should be
+                 treated as read-only.
+    - ``embedded``: dictionary containing the document's embedded resources.
+                    Each link relationship type is mapped to a ``Document``
+                    instance.
     - ``rels``: a ``Relationships`` instance holding a merged view of the
-              relationships from the document.
+                relationships from the document.
 
     """
     def __init__(self, o, relative_to_url, parent_curie=None):
@@ -256,7 +257,8 @@ class Document(object):
         
         This method adds a link to the given ``target`` to the document with
         the given ``rel``. If one or more links are already present for that
-        ``rel``, the new link will be added to the existing links for that rel.
+        link relationship type, the new link will be added to the existing
+        links for that link relationship type.
 
         If ``target`` is a string, a link is added with ``target`` as its
         ``href`` attribute and other attributes from the keyword arguments.
@@ -269,8 +271,8 @@ class Document(object):
 
         Arguments:
 
-        - ``rel``: a string specifying the rel of the link. ``rel`` should be a
-          well-known link relation name from the IANA registry
+        - ``rel``: a string specifying the link relationship type of the link.
+          It should be a well-known link relation name from the IANA registry
           (http://www.iana.org/assignments/link-relations/link-relations.xml),
           a full URI, or a CURIE.
         - ``target``: the destination of the link.
@@ -303,15 +305,15 @@ class Document(object):
         The optional arguments, ``rel`` and ``href`` are used to select the
         links that will be deleted. If neither of the optional arguments are
         given, this method deletes every link in the document. If ``rel`` is
-        given, only links for the matching rel are deleted. If ``href`` is
-        given, only links with a matching ``href`` are deleted.  If both
-        ``rel`` and ``href`` are given, only links with matching ``href`` in
-        the matching rel are delted.
+        given, only links for the matching link relationship type are deleted.
+        If ``href`` is given, only links with a matching ``href`` are deleted.
+        If both ``rel`` and ``href`` are given, only links with matching
+        ``href`` for the matching link relationship type are delted.
 
         Arguments:
 
-        - ``rel``: an optional string specifying the rel name of the links to
-                   be deleted.
+        - ``rel``: an optional string specifying the link relationship type of
+                   the links to be deleted.
         - ``href``: optionally, a string specifying the ``href`` of the links
                     to be deleted, or a callable that returns true when its
                     single argument is in the set of ``href``s to be deleted.
@@ -389,9 +391,9 @@ class Document(object):
 
         Arguments:
 
-        - ``rel``: a string specifying the rel of the embedded document.
-          ``rel`` should be a well-known link relation name from the IANA
-          registry
+        - ``rel``: a string specifying the link relationship type of the
+          embedded document. ``rel`` should be a well-known link relation name
+          from the IANA registry
           (http://www.iana.org/assignments/link-relations/link-relations.xml),
           a full URI, or a CURIE.
         - ``other``: a ``Document`` instance that will be embedded in this
@@ -402,7 +404,8 @@ class Document(object):
         
         This method embeds the given document in this document with the given
         ``rel``. If one or more documents have already been embedded for that
-        ``rel``, the new document will be added to the existing rel.
+        ``rel``, the new document will be embedded in addition to those
+        documents.
 
         """
         embedded = self.o.setdefault('_embedded', {})
@@ -429,15 +432,16 @@ class Document(object):
         embedded documents that will be removed. If neither of the optional
         arguments are given, this method removes every embedded document from
         this document. If ``rel`` is given, only embedded documents for the
-        matching rel are removed. If ``href`` is given, only embedded documents
-        with a ``self`` link matching ``href`` are deleted.  If both ``rel``
-        and ``href`` are given, only embedded documents with matching ``self``
-        link in the matching rel are removed.
+        matching link relationship type are removed. If ``href`` is given, only
+        embedded documents with a ``self`` link matching ``href`` are deleted.
+        If both ``rel`` and ``href`` are given, only embedded documents with
+        matching ``self`` link for the matching link relationship type are
+        removed.
 
         Arguments:
 
-        - ``rel``: an optional string specifying the rel name of the embedded
-                   documents to be removed.
+        - ``rel``: an optional string specifying the link relationship type of
+                   the embedded documents to be removed.
         - ``href``: optionally, a string specifying the ``href`` of the
                     ``self`` links of the documents to be removed, or a
                     callable that returns true when its single argument matches
