@@ -14,17 +14,17 @@ from functools import wraps
 class Relationships(UserDict.DictMixin):
     """Merged view of relationships from a HAL document.
 
-    Relationships, that is links and embedded documents, are presented as a
+    Relationships, that is links and embedded resources, are presented as a
     dictionary-like object mapping the full URI of the link relationship type
     to a list of relationships.
     
-    If there are both embedded documents and links for the same link relation
-    type, the embedded documents will appear before the links. Otherwise,
+    If there are both embedded resources and links for the same link relation
+    type, the embedded resources will appear before the links. Otherwise,
     relationships are presented in the order they appear in their respective
     collection.
 
     Relationionships are deduplicated by their URL, as defined by their
-    ``self`` link in the case of embedded documents and by their ``href``
+    ``self`` link in the case of embedded resources and by their ``href``
     in the case of links. Only the first relationship with that URL will be
     included.
     
@@ -73,7 +73,7 @@ class Relationships(UserDict.DictMixin):
 def mutator(fn):
     """Decorator for ``Document`` methods that change the document.
 
-    This decorator ensures that the document's caches are kept in sync
+    This decorator ensures that the object's caches are kept in sync
     when changes are made.
     
     """
@@ -88,7 +88,7 @@ def mutator(fn):
 
 
 class Document(object):
-    """Represents a HAL document.
+    """Represents the document for a HAL resource.
 
     Constructors:
 
@@ -171,7 +171,7 @@ class Document(object):
         self.rels = Relationships(self.links, self.embedded, self.curie)
 
     def url(self):
-        """Returns the URL for the document based on the ``self`` link.
+        """Returns the URL for the resource based on the ``self`` link.
 
         This method returns the ``href`` of the document's ``self`` link if it
         has one, or ``None`` if the document lacks a ``self`` link, or the
@@ -206,7 +206,7 @@ class Document(object):
         return self.o
 
     def as_link(self):
-        """Returns a `Link` to the document."""
+        """Returns a `Link` to the resource."""
         return self.links['self']
 
     @mutator
@@ -245,7 +245,7 @@ class Document(object):
         del self.o[key]
 
     def link(self, href, **kwargs):
-        """Retuns a new link relative to this document."""
+        """Retuns a new link relative to this resource."""
         return link.Link(dict(href=href, **kwargs), self.base_uri)
 
     @mutator
@@ -297,7 +297,7 @@ class Document(object):
 
     @mutator
     def delete_link(self, rel=None, href=lambda _: True):
-        """Deletes a links from the document.
+        """Deletes links from the document.
 
         Calling code should use this method to remove links instead of
         modyfying ``links`` directly.
@@ -366,7 +366,7 @@ class Document(object):
         - ``parent_curie``: optional ``CurieCollection`` instance holding the
                             CURIEs of the parent document in which the new
                             document is to be embedded. Calling code should not
-                            normall provide this argument.
+                            normally provide this argument.
 
         """
         if isinstance(o, list):
@@ -392,14 +392,14 @@ class Document(object):
         Arguments:
 
         - ``rel``: a string specifying the link relationship type of the
-          embedded document. ``rel`` should be a well-known link relation name
+          embedded resource. ``rel`` should be a well-known link relation name
           from the IANA registry
           (http://www.iana.org/assignments/link-relations/link-relations.xml),
           a full URI, or a CURIE.
         - ``other``: a ``Document`` instance that will be embedded in this
           document.
 
-        Calling code should use this method to add embedded documents instead
+        Calling code should use this method to add embedded resources instead
         of modifying ``embedded`` directly.
         
         This method embeds the given document in this document with the given
@@ -423,29 +423,29 @@ class Document(object):
 
     @mutator
     def delete_embedded(self, rel=None, href=lambda _: True):
-        """Removes an document embedded in this document.
+        """Removes an embedded resource from this document.
 
-        Calling code should use this method to remove embedded documents
+        Calling code should use this method to remove embedded resources
         instead of modyfying ``embedded`` directly.
 
         The optional arguments, ``rel`` and ``href`` are used to select the
-        embedded documents that will be removed. If neither of the optional
-        arguments are given, this method removes every embedded document from
-        this document. If ``rel`` is given, only embedded documents for the
+        embedded resources that will be removed. If neither of the optional
+        arguments are given, this method removes every embedded resource from
+        this document. If ``rel`` is given, only embedded resources for the
         matching link relationship type are removed. If ``href`` is given, only
-        embedded documents with a ``self`` link matching ``href`` are deleted.
-        If both ``rel`` and ``href`` are given, only embedded documents with
+        embedded resources with a ``self`` link matching ``href`` are deleted.
+        If both ``rel`` and ``href`` are given, only embedded resources with
         matching ``self`` link for the matching link relationship type are
         removed.
 
         Arguments:
 
         - ``rel``: an optional string specifying the link relationship type of
-                   the embedded documents to be removed.
+                   the embedded resources to be removed.
         - ``href``: optionally, a string specifying the ``href`` of the
-                    ``self`` links of the documents to be removed, or a
+                    ``self`` links of the resources to be removed, or a
                     callable that returns true when its single argument matches
-                    the ``href`` of the ``self`` link of one of the documents
+                    the ``href`` of the ``self`` link of one of the resources
                     to be removed.
 
         """
