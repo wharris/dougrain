@@ -34,7 +34,7 @@ class ParseLinksTest(unittest.TestCase):
 
     def setUp(self):
         self.doc = dougrain.Document.from_object(
-            self.OBJECT, relative_to_url="http://localhost/wharris/dougrain")
+            self.OBJECT, base_uri="http://localhost/wharris/dougrain")
 
     def testLoadsSingleLinkHref(self):
         self.assertEquals("http://localhost/wharris/esmre",
@@ -99,7 +99,7 @@ class ParseEmbeddedObjectsTest(unittest.TestCase):
     def setUp(self):
         self.doc = dougrain.Document.from_object(
             self.OBJECT,
-            relative_to_url="http://localhost/people/")
+            base_uri="http://localhost/people/")
 
     def testLoadsSingleEmbeddedObject(self):
         foo = self.doc.embedded["foo"]
@@ -822,7 +822,7 @@ class CurieMutationTest(unittest.TestCase):
         doc = make_doc("http://localhost/3")
         doc.set_curie('rel', "http://localhost/rels/{relation}")
 
-        new_doc = dougrain.Document(doc.as_object(), doc.relative_to_url)
+        new_doc = dougrain.Document(doc.as_object(), doc.base_uri)
         self.assertEquals("http://localhost/rels/foo",
                           new_doc.expand_curie("rel:foo"))
 
@@ -831,7 +831,7 @@ class CurieMutationTest(unittest.TestCase):
         doc.set_curie('rel', "http://localhost/rels/{relation}")
         doc.set_curie('rel', "http://localhost/RELS/{relation}.html")
 
-        new_doc = dougrain.Document(doc.as_object(), doc.relative_to_url)
+        new_doc = dougrain.Document(doc.as_object(), doc.base_uri)
         self.assertEquals("http://localhost/RELS/foo.html",
                           new_doc.expand_curie("rel:foo"))
 
@@ -841,7 +841,7 @@ class CurieMutationTest(unittest.TestCase):
         doc.set_curie('tm', "http://www.touchmachine.com/{relation}.html")
         doc.drop_curie('rel')
 
-        new_doc = dougrain.Document(doc.as_object(), doc.relative_to_url)
+        new_doc = dougrain.Document(doc.as_object(), doc.base_uri)
         self.assertEquals("rel:foo", doc.expand_curie("rel:foo"))
         self.assertEquals("http://www.touchmachine.com/index.html",
                           new_doc.expand_curie("tm:index"))

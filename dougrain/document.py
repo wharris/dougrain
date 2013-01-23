@@ -92,9 +92,9 @@ class Document(object):
 
     Constructors:
 
-    - ``Document.empty(relative_to_url=None)``:
+    - ``Document.empty(base_uri=None)``:
         returns an empty ``Document``.
-    - ``Document.from_object(o, relative_to_url=None, parent_curie=None)``:
+    - ``Document.from_object(o, base_uri=None, parent_curie=None)``:
         returns a new ``Document`` based on a JSON object.
 
     Public Instance Attributes:
@@ -113,10 +113,10 @@ class Document(object):
                 relationships from the document.
 
     """
-    def __init__(self, o, relative_to_url, parent_curie=None):
+    def __init__(self, o, base_uri, parent_curie=None):
         self.o = o
         self.parent_curie = parent_curie
-        self.relative_to_url = relative_to_url
+        self.base_uri = base_uri
         self.prepare_cache()
 
     RESERVED_ATTRIBUTE_NAMES = ('_links', '_embedded')
@@ -135,7 +135,7 @@ class Document(object):
             for key, value in self.o.get("_links", {}).iteritems():
                 if key == 'curie':
                     continue
-                links[key] = link.Link.from_object(value, self.relative_to_url)
+                links[key] = link.Link.from_object(value, self.base_uri)
 
             return links
 
@@ -146,7 +146,7 @@ class Document(object):
 
             curies = link.Link.from_object(
                 self.o.get('_links', {}).get('curie', []),
-                self.relative_to_url)
+                self.base_uri)
 
             if not isinstance(curies, list):
                 curies = [curies]
@@ -160,7 +160,7 @@ class Document(object):
             embedded = {}
             for key, value in self.o.get("_embedded", {}).iteritems():
                 embedded[key] = self.from_object(value,
-                                                 self.relative_to_url,
+                                                 self.base_uri,
                                                  self.curie)
             return embedded
 
@@ -246,7 +246,7 @@ class Document(object):
 
     def link(self, href, **kwargs):
         """Retuns a new link relative to this document."""
-        return link.Link(dict(href=href, **kwargs), self.relative_to_url)
+        return link.Link(dict(href=href, **kwargs), self.base_uri)
 
     @mutator
     def add_link(self, rel, target, **kwargs):
@@ -354,14 +354,14 @@ class Document(object):
             del self.o['_links']
 
     @classmethod
-    def from_object(cls, o, relative_to_url=None, parent_curie=None):
+    def from_object(cls, o, base_uri=None, parent_curie=None):
         """Returns a new ``Document`` based on a JSON object.
 
         Arguments:
 
         - ``o``: a dictionary holding the deserializated JSON for the new
                  ``Document``, or a ``list`` of such documents.
-        - ``relative_to_url``: optional URL used as the basis when expanding
+        - ``base_uri``: optional URL used as the basis when expanding
                                relative URLs in the document.
         - ``parent_curie``: optional ``CurieCollection`` instance holding the
                             CURIEs of the parent document in which the new
@@ -370,20 +370,20 @@ class Document(object):
 
         """
         if isinstance(o, list):
-            return map(lambda x: cls.from_object(x, relative_to_url), o)
+            return map(lambda x: cls.from_object(x, base_uri), o)
 
-        return cls(o, relative_to_url, parent_curie)
+        return cls(o, base_uri, parent_curie)
 
     @classmethod
-    def empty(cls, relative_to_url=None):
+    def empty(cls, base_uri=None):
         """Returns an empty ``Document``.
 
         Arguments:
 
-        - ``relative_to_url``: optional URL used as the basis when expanding
+        - ``base_uri``: optional URL used as the basis when expanding
                                relative URLs in the document.
         """
-        return cls.from_object({}, relative_to_url=relative_to_url)
+        return cls.from_object({}, base_uri=base_uri)
 
     @mutator
     def embed(self, rel, other):
@@ -476,7 +476,7 @@ class Document(object):
 
         new_rel_embeds = []
         for embedded in list(rel_embeds):
-            embedded_doc = Document(embedded, self.relative_to_url)
+            embedded_doc = Document(embedded, self.base_uri)
             if not url_filter(embedded_doc.url()):
                 new_rel_embeds.append(embedded)
 
