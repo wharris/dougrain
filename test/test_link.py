@@ -174,5 +174,16 @@ class TestExtractVariablesFromLink(unittest.TestCase):
       self.assertVariables("keys", "{&keys*}")
 
 
+class TestIteration(unittest.TestCase):
+    def testASingleLinkCanBeIterated(self):
+        the_link = link.Link({"href": "/"}, "http://localhost/")
+        count = 0
+        for a_link in the_link:
+            count += 1
+            self.assertEquals(the_link, a_link)
+
+        self.assertEquals(1, count)
+
+
 if __name__ == '__main__':
     unittest.main()

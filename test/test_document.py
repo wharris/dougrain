@@ -682,6 +682,19 @@ class EmbedTest(unittest.TestCase):
                           self.doc.embedded['item'])
 
 
+class TestIteration(unittest.TestCase):
+    def testASingleDocumentCanBeIterated(self):
+        the_doc = dougrain.Document.empty("http://localhost/1")
+        the_doc.add_link('self', "http://localhost/1")
+
+        count = 0
+        for a_doc in the_doc:
+            count += 1
+            self.assertEquals(the_doc, a_doc)
+
+        self.assertEquals(1, count)
+
+
 def make_doc(href):
     result = dougrain.Document.empty("http://localhost")
     result.add_link('self', href)

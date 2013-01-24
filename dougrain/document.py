@@ -52,8 +52,6 @@ class Relationships(UserDict.DictMixin):
         for key, values in itertools.chain(embedded.iteritems(),
                                            links.iteritems()):
             rel_key = curie.expand(key)
-            if not isinstance(values, list):
-                values = [values]
 
             for value in values:
                 url = value.url()
@@ -512,6 +510,9 @@ class Document(object):
             if curie['name'] == name:
                 del curies[i]
                 break
+
+    def __iter__(self):
+        yield self
 
     def __eq__(self, other):
         if not isinstance(other, Document):
