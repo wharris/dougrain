@@ -10,7 +10,7 @@ class ParseSimpleTest(unittest.TestCase):
         self.doc = dougrain.Document.from_object({"name": "David Bowman"})
 
     def testParseSimple(self):
-        self.assertEquals(self.doc.attrs['name'], "David Bowman")
+        self.assertEquals(self.doc.properties['name'], "David Bowman")
 
     def testHasEmptyLinks(self):
         self.assertEquals(self.doc.links, {})
@@ -69,7 +69,7 @@ class ParseLinksTest(unittest.TestCase):
                           [link.href for link in self.doc.links['images']])
 
     def testLinksIsNotAnAttribute(self):
-        self.assertFalse('_links' in self.doc.attrs)
+        self.assertFalse('_links' in self.doc.properties)
         self.assertFalse(hasattr(self.doc, '_links'))
 
 
@@ -103,12 +103,12 @@ class ParseEmbeddedObjectsTest(unittest.TestCase):
 
     def testLoadsSingleEmbeddedObject(self):
         foo = self.doc.embedded["foo"]
-        self.assertEquals("Foo", foo.attrs['name'])
-        self.assertEquals(88888888, foo.attrs['size'])
+        self.assertEquals("Foo", foo.properties['name'])
+        self.assertEquals(88888888, foo.properties['size'])
 
     def testLoadsArrayOfEmbeddedObjects(self):
         self.assertEquals(["Bar 1", "Bar 2"],
-                          [bar.attrs['title']
+                          [bar.properties['title']
                            for bar in self.doc.embedded['bar']])
 
     def testLoadsLinksInEmbeddedObject(self):
@@ -117,7 +117,7 @@ class ParseEmbeddedObjectsTest(unittest.TestCase):
         self.assertEquals("http://localhost/people/2", link.url())
 
     def testEmbeddedIsNotAnAttribute(self):
-        self.assertFalse('_embedded' in self.doc.attrs)
+        self.assertFalse('_embedded' in self.doc.properties)
         self.assertFalse(hasattr(self.doc, '_embedded'))
 
 
@@ -258,7 +258,7 @@ class RelsTest(unittest.TestCase):
         self.assertTrue(consumer_role in self.doc.rels)
         consumer = self.doc.rels[consumer_role][0]
         self.assertEquals("http://localhost/clients/1", consumer.url())
-        self.assertEquals("Client 1", consumer.attrs['name'])
+        self.assertEquals("Client 1", consumer.properties['name'])
 
     def testHasApplicationLinkAndEmbeddedRels(self):
         application_role = self.doc.expand_curie('role:application')
@@ -313,26 +313,26 @@ class SerializeTests(unittest.TestCase):
 class AttributeMutationTests(unittest.TestCase):
     def testSetAttributeAddsAttribute(self):
         doc = dougrain.Document.empty()
-        doc.set_attribute('foo', "bar")
+        doc.set_property('foo', "bar")
 
-        self.assertEquals("bar", doc.attrs['foo'])
+        self.assertEquals("bar", doc.properties['foo'])
 
     def testSetAttributeUpdatesAttribute(self):
         doc = dougrain.Document.empty()
-        doc.set_attribute('foo', "bar")
+        doc.set_property('foo', "bar")
 
-        doc.set_attribute('foo', "bundy")
+        doc.set_property('foo', "bundy")
 
-        self.assertEquals("bundy", doc.attrs['foo'])
+        self.assertEquals("bundy", doc.properties['foo'])
 
     def testRemoveAttributeRemovesAttribute(self):
         doc = dougrain.Document.empty()
-        doc.set_attribute('foo', "bar")
+        doc.set_property('foo', "bar")
 
-        doc.delete_attribute('foo')
+        doc.delete_property('foo')
 
         self.assertFalse(hasattr(doc, 'foo'))
-        self.assertFalse('foo' in doc.attrs)
+        self.assertFalse('foo' in doc.properties)
 
     def testBuildObjectFromEmpty(self):
         target = {"latlng": [53.0, -0.001],
@@ -343,8 +343,8 @@ class AttributeMutationTests(unittest.TestCase):
 
         doc = dougrain.Document.empty()
 
-        for key, value in target_doc.attrs.iteritems():
-            doc.set_attribute(key, value)
+        for key, value in target_doc.properties.iteritems():
+            doc.set_property(key, value)
 
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
@@ -873,13 +873,13 @@ class EdgeCasesTests(unittest.TestCase):
 
     def testSetReservedAttributeSilentlyFails(self):
         doc = dougrain.Document.empty("http://localhost")
-        doc.set_attribute('_links', {'self': {'href': "/1"}})
-        doc.set_attribute('_embedded', {'child': {'foo': "bar"}})
+        doc.set_property('_links', {'self': {'href': "/1"}})
+        doc.set_property('_embedded', {'child': {'foo': "bar"}})
 
-        self.assertFalse('_links' in doc.attrs)
+        self.assertFalse('_links' in doc.properties)
         self.assertIsNone(doc.url())
 
-        self.assertFalse('_embedded' in doc.attrs)
+        self.assertFalse('_embedded' in doc.properties)
         self.assertFalse('child' in doc.embedded)
 
     def testDeleteReservedAttributeSilentlyFails(self):
@@ -889,15 +889,15 @@ class EdgeCasesTests(unittest.TestCase):
         doc.add_link('self', "/1")
 
         with self.assertRaises(KeyError):
-            doc.delete_attribute('_links')
+            doc.delete_property('_links')
         with self.assertRaises(KeyError):
-            doc.delete_attribute('_embedded')
+            doc.delete_property('_embedded')
 
-        self.assertFalse('_links' in doc.attrs)
+        self.assertFalse('_links' in doc.properties)
         self.assertEquals("http://localhost/1", doc.url())
 
-        self.assertFalse('_embedded' in doc.attrs)
-        self.assertEquals("bar", doc.embedded['child'].attrs['foo'])
+        self.assertFalse('_embedded' in doc.properties)
+        self.assertEquals("bar", doc.embedded['child'].properties['foo'])
 
 
 if __name__ == '__main__':

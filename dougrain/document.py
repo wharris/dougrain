@@ -99,9 +99,9 @@ class Document(object):
 
     Public Instance Attributes:
 
-    - ``attrs``: ``dict`` containing the properties of the HAL document,
-                 excluding ``_links`` and ``_embedded``. ``attrs`` should
-                 be treated as read-only.
+    - ``properties``: ``dict`` containing the properties of the HAL document,
+                      excluding ``_links`` and ``_embedded``. ``properties``
+                      should be treated as read-only.
     - ``links``: ``dict`` containing the document's links, excluding
                  ``curie``. Each link relationship type is mapped to a ``Link``
                  instance or a list of ``Link`` instances. ``links`` should be
@@ -122,12 +122,12 @@ class Document(object):
     RESERVED_ATTRIBUTE_NAMES = ('_links', '_embedded')
 
     def prepare_cache(self):
-        def attrs_cache():
-            attrs = dict(self.o)
+        def properties_cache():
+            properties = dict(self.o)
             for name in self.RESERVED_ATTRIBUTE_NAMES:
-                attrs[name] = None
-                del attrs[name]
-            return attrs
+                properties[name] = None
+                del properties[name]
+            return properties
 
         def links_cache():
             links = {}
@@ -164,7 +164,7 @@ class Document(object):
                                                  self.curie)
             return embedded
 
-        self.attrs = attrs_cache()
+        self.properties = properties_cache()
         self.links = links_cache()
         self.curie = load_curie_collection()
         self.embedded = embedded_cache()
@@ -210,18 +210,18 @@ class Document(object):
         return self.links['self']
 
     @mutator
-    def set_attribute(self, key, value):
-        """Set an attribute on the document.
+    def set_property(self, key, value):
+        """Set a property on the document.
 
-        Calling code should use this method to add and modify attributes
-        on the document instead of modifying ``attrs`` directly.
+        Calling code should use this method to add and modify properties
+        on the document instead of modifying ``properties`` directly.
 
         If ``key`` is ``"_links"`` or ``"_embedded"`` this method will silently
         fail.
 
-        If there is no attribute with the name in ``key``, a new attribute is
+        If there is no property with the name in ``key``, a new property is
         created with the name from ``key`` and the value from ``value``. If
-        the document already has an attribute with that name, it's value
+        the document already has a property with that name, it's value
         is replaced with the value in ``value``.
 
         """
@@ -230,13 +230,13 @@ class Document(object):
         self.o[key] = value
 
     @mutator
-    def delete_attribute(self, key):
-        """Remove an attribute from the document.
+    def delete_property(self, key):
+        """Remove an property from the document.
 
-        Calling code should use this method to remove attributes on the
-        document instead of modifying ``attrs`` directly.
+        Calling code should use this method to remove properties on the
+        document instead of modifying ``properties`` directly.
 
-        If there is an attribute with the name in ``key``, it will be removed.
+        If there is a property with the name in ``key``, it will be removed.
         Otherwise, a ``KeyError`` will be thrown.
 
         """
@@ -253,7 +253,7 @@ class Document(object):
         """Adds a link to the document.
 
         Calling code should use this method to add links instead of
-        modifying the ``links`` attribute directly.
+        modifying ``links`` directly.
         
         This method adds a link to the given ``target`` to the document with
         the given ``rel``. If one or more links are already present for that
@@ -261,7 +261,7 @@ class Document(object):
         links for that link relationship type.
 
         If ``target`` is a string, a link is added with ``target`` as its
-        ``href`` attribute and other attributes from the keyword arguments.
+        ``href`` property and other properties from the keyword arguments.
 
         If ``target`` is a ``Link`` object, it is added to the document and the
         keyword arguments are ignored.

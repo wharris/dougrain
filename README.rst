@@ -75,12 +75,12 @@ Example
     ...         }
     ...     },
     ...     relative_to_url="http://localhost/")
-    >>> doc.attrs['welcome']
+    >>> doc.properties['welcome']
     'Hi there!'
     >>> doc.embedded['r:post'].url()
     'http://localhost/1'
     >>> new_post = Document.empty()
-    >>> new_post.set_attribute("name", "Second child")
+    >>> new_post.set_property("name", "Second child")
     >>> new_post.add_link("self", "/2")
     >>> new_post.as_object()
     {'_links': {'self': {'href': '/2'}}, 'name': 'Second child'}
