@@ -15,4 +15,4 @@ class CurieCollection(dict):
         if key not in self:
             return link
 
-        return self[key].url(relation=value)
+        return self[key].url(rel=value)

@@ -126,12 +126,12 @@ class CurieExpansionTest(unittest.TestCase):
         '_links': {
             'curie': [
                 {
-                    'href': "http://localhost/roles/{relation}",
+                    'href': "http://localhost/roles/{rel}",
                     'name': 'role',
                     'templated': True
                 },
                 {
-                    'href': "http://localhost/images/{relation}",
+                    'href': "http://localhost/images/{rel}",
                     'name': 'image'
                 }
             ],
@@ -143,7 +143,7 @@ class CurieExpansionTest(unittest.TestCase):
                     'curie': [
                         {
                             'href':
-                            "http://localhost/dimension/{relation}",
+                            "http://localhost/dimension/{rel}",
                             'name': 'dim',
                             'templated': True
                         }
@@ -155,7 +155,7 @@ class CurieExpansionTest(unittest.TestCase):
                     'curie': [
                         {
                             'href':
-                            "http://localhost/imagefiles/{relation}",
+                            "http://localhost/imagefiles/{rel}",
                             'name': 'image',
                             'templated': True
                         }
@@ -196,12 +196,12 @@ class RelsTest(unittest.TestCase):
         '_links': {
             'curie': [
                 {
-                    'href': "/roles/{relation}",
+                    'href': "/roles/{rel}",
                     'name': 'role',
                     'templated': True
                 },
                 {
-                    'href': "http://localhost/images/{relation}",
+                    'href': "http://localhost/images/{rel}",
                     'name': 'image',
                     'templated': True
                 }
@@ -833,7 +833,7 @@ class DeleteEmbeddedTests(unittest.TestCase):
 class CurieMutationTest(unittest.TestCase):
     def testSetCurie(self):
         doc = make_doc("http://localhost/3")
-        doc.set_curie('rel', "http://localhost/rels/{relation}")
+        doc.set_curie('rel', "http://localhost/rels/{rel}")
 
         new_doc = dougrain.Document(doc.as_object(), doc.base_uri)
         self.assertEquals("http://localhost/rels/foo",
@@ -841,8 +841,8 @@ class CurieMutationTest(unittest.TestCase):
 
     def testReplaceCurie(self):
         doc = make_doc("http://localhost/3")
-        doc.set_curie('rel', "http://localhost/rels/{relation}")
-        doc.set_curie('rel', "http://localhost/RELS/{relation}.html")
+        doc.set_curie('rel', "http://localhost/rels/{rel}")
+        doc.set_curie('rel', "http://localhost/RELS/{rel}.html")
 
         new_doc = dougrain.Document(doc.as_object(), doc.base_uri)
         self.assertEquals("http://localhost/RELS/foo.html",
@@ -850,8 +850,8 @@ class CurieMutationTest(unittest.TestCase):
 
     def testDropCurie(self):
         doc = make_doc("http://localhost/3")
-        doc.set_curie('rel', "http://localhost/rels/{relation}")
-        doc.set_curie('tm', "http://www.touchmachine.com/{relation}.html")
+        doc.set_curie('rel', "http://localhost/rels/{rel}")
+        doc.set_curie('tm', "http://www.touchmachine.com/{rel}.html")
         doc.drop_curie('rel')
 
         new_doc = dougrain.Document(doc.as_object(), doc.base_uri)
@@ -865,7 +865,7 @@ class CurieHidingTests(unittest.TestCase):
         doc = dougrain.Document({
             '_links': {
                 'curie': {
-                    'href': "http://localhost/rel/{relation}",
+                    'href': "http://localhost/rel/{rel}",
                     'name': "rel"
                 },
                 'self': {
