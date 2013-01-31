@@ -877,6 +877,80 @@ class CurieHidingTests(unittest.TestCase):
         self.assertFalse('curie' in doc.links)
                 
 
+class LinkCanonicalizationTests(unittest.TestCase):
+    def setUp(self):
+        self.doc = dougrain.Document.empty("http://localhost/1/")
+        self.doc.set_curie("role", "/roles/{rel}")
+
+    def testFindsLinksByFullRelTypeURI(self):
+        self.doc.add_link("role:app", "/apps/1")
+        self.assertEquals(self.doc.links["role:app"],
+                          self.doc.links["http://localhost/roles/app"])
+
+    def testFindsLinksByRelTypePath(self):
+        self.doc.add_link("role:app", "/apps/1")
+        self.assertEquals(self.doc.links["role:app"],
+                          self.doc.links["/roles/app"])
+
+    def testMergesLinksAddedWithSynonymous(self):
+        self.doc.add_link("role:app", "/apps/1")
+        self.doc.add_link("/roles/app", "/apps/2")
+        self.doc.add_link("http://localhost/roles/app", "/apps/3")
+
+        self.assertEquals(["/apps/1", "/apps/2", "/apps/3"],
+                           [link.href for link in self.doc.links["role:app"]])
+
+    def testMergesLinkswhenLoading(self):
+        self.doc = dougrain.Document.from_object(
+            {
+                "_links": {
+                    "curie": [
+                        {"href": "/roles/{rel}", "name": "role"}
+                    ],
+                    "self": {"href": "/1"},
+                    "role:app": {"href": "/apps/1"},
+                    "/roles/app": {"href": "/apps/2"},
+                    "http://localhost/roles/app": {"href": "/apps/3"},
+                }
+            },
+            base_uri="http://localhost/1")
+        self.doc.set_curie("role", "/roles/{rel}")
+        
+        self.assertEquals(set(["/apps/1", "/apps/2", "/apps/3"]),
+                          set(link.href for link in self.doc.links["role:app"]))
+
+
+class EmbeddedCanonicalizationTests(unittest.TestCase):
+    def setUp(self):
+        self.doc = dougrain.Document.empty("http://localhost/1/")
+        self.doc.set_curie("role", "/roles/{rel}")
+
+    def new_doc(self, uri):
+        doc = dougrain.Document.empty(uri)
+        doc.add_link('self', uri)
+        doc.set_property("name", uri)
+        return doc
+
+    def testFindsEmbeddedResourcesByFullRelTypeURI(self):
+        self.doc.embed("role:app", self.new_doc("/apps/1"))
+        self.assertEquals(self.doc.embedded["role:app"],
+                          self.doc.embedded["http://localhost/roles/app"])
+
+    def testFindsEmbeddedResourcesByRelTypePath(self):
+        self.doc.embed("role:app", self.new_doc("/apps/1"))
+        self.assertEquals(self.doc.embedded["role:app"],
+                          self.doc.embedded["/roles/app"])
+
+    def testMergesEmbeddedResourcesAddedWithSynonymous(self):
+        self.doc.embed("role:app", self.new_doc("/apps/1"))
+        self.doc.embed("/roles/app", self.new_doc("/apps/2"))
+        self.doc.embed("http://localhost/roles/app", self.new_doc("/apps/3"))
+
+        self.assertEquals(["/apps/1", "/apps/2", "/apps/3"],
+                           [embedded.properties['name']
+                            for embedded in self.doc.embedded["role:app"]])
+
+
 class EdgeCasesTests(unittest.TestCase):
     def testUrlOfDocumentWithMultipleSelfLinksFromFirstSelfLink(self):
         doc = dougrain.Document.empty("http://localhost")

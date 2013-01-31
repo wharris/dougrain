@@ -11,6 +11,56 @@ import link
 import UserDict
 from functools import wraps
 
+class CanonicalRels(UserDict.DictMixin):
+    def __init__(self, rels, curie, base_uri):
+        if hasattr(rels, 'iteritems'):
+            items = rels.iteritems()
+        else:
+            items = rels
+
+        self.curie = curie
+        self.base_uri = base_uri
+        self.rels = {}
+
+        for key, value in items:
+            canonical_key = self.canonical_key(key)
+            if not canonical_key in self.rels:
+                self.rels[canonical_key] = (key, value)
+                continue
+
+            original_key, current_value = self.rels[canonical_key]
+
+            if not hasattr(current_value, 'append'):
+                current_value = [current_value]
+                self.rels[canonical_key] = original_key, current_value
+
+            current_value.append(value)
+
+        self.rels = self.rels
+
+    def canonical_key(self, key):
+        if key.startswith('/'):
+            return urlparse.urljoin(self.base_uri, key)
+        else:
+            return self.curie.expand(key)
+
+    def original_key(self, key):
+        return self.rels[self.canonical_key(key)][0]
+
+    def __getitem__(self, key):
+        return self.rels[self.canonical_key(key)][1]
+
+    def __contains__(self, key):
+        return self.canonical_key(key) in self.rels
+
+    def keys(self):
+        return [original_key for original_key, _ in self.rels.itervalues()]
+
+    def __equals__(self, other):
+        canonical_other = CanonicalRels(other, self.curie, self.base_uri).links
+        return self.rels == canonical_other
+
+
 class Relationships(UserDict.DictMixin):
     """Merged view of relationships from a HAL document.
 
@@ -135,7 +185,7 @@ class Document(object):
                     continue
                 links[key] = link.Link.from_object(value, self.base_uri)
 
-            return links
+            return CanonicalRels(links, self.curie, self.base_uri)
 
         def load_curie_collection():
             result = curie.CurieCollection()
@@ -160,11 +210,11 @@ class Document(object):
                 embedded[key] = self.from_object(value,
                                                  self.base_uri,
                                                  self.curie)
-            return embedded
+            return CanonicalRels(embedded, self.curie, self.base_uri)
 
         self.properties = properties_cache()
-        self.links = links_cache()
         self.curie = load_curie_collection()
+        self.links = links_cache()
         self.embedded = embedded_cache()
         self.rels = Relationships(self.links, self.embedded, self.curie)
 
@@ -282,16 +332,20 @@ class Document(object):
             link = self.link(target, **kwargs)
 
         links = self.o.setdefault('_links', {})
+        
         new_link = link.as_object()
-        if rel not in links:
+        collected_links = CanonicalRels(links, self.curie, self.base_uri)
+        if rel not in collected_links:
             links[rel] = new_link
             return
 
-        current_links = links[rel]
+        original_rel = collected_links.original_key(rel)
+
+        current_links = links[original_rel]
         if isinstance(current_links, list):
             current_links.append(new_link)
         else:
-            links[rel] = [current_links, new_link]
+            links[original_rel] = [current_links, new_link]
 
     @mutator
     def delete_link(self, rel=None, href=lambda _: True):
@@ -407,17 +461,19 @@ class Document(object):
 
         """
         embedded = self.o.setdefault('_embedded', {})
-        links_for_rel = embedded.setdefault(rel, [])
+        collected_embedded = CanonicalRels(embedded, self.curie, self.base_uri)
 
-        if isinstance(links_for_rel, dict):
-            links_for_rel = [links_for_rel]
+        if rel not in collected_embedded:
+            embedded[rel] = other.as_object()
+            return
 
-        links_for_rel.append(other.as_object())
+        original_rel = collected_embedded.original_key(rel)
 
-        if len(links_for_rel) == 1:
-            links_for_rel = links_for_rel[0]
-
-        embedded[rel] = links_for_rel
+        current_embedded = embedded[original_rel]
+        if isinstance(current_embedded, list):
+            current_embedded.append(other.as_object())
+        else:
+            embedded[original_rel] = [current_embedded, other.as_object()]
 
     @mutator
     def delete_embedded(self, rel=None, href=lambda _: True):
