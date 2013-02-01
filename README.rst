@@ -66,7 +66,7 @@ Example
     ...         "welcome": "Hi there!", 
     ...         "_links": {
     ...             "curie": {
-    ...                 "href": "http://localhost/rels/{relation}", 
+    ...                 "href": "http://localhost/rels/{rel}", 
     ...                 "name": "r"
     ...             }, 
     ...             "self": {
