@@ -9,14 +9,14 @@ Draft <http://tools.ietf.org/html/draft-kelly-json-hal-03>`_. It uses
 Python objects to represent the JSON document, so you can use it with
 simplejson or the json module from the standard library.
 
- Status
--------
+Status
+------
 
-This is an pre-release version. The API may have have breaking changes
-in the future.
+This is a pre-release version. The API may have have breaking changes
+in minor version releases until version 1.0.
 
- Installation
--------------
+Installation
+------------
 
 ::
 
@@ -24,8 +24,8 @@ in the future.
     $ pip install uritemplate
     $ python setup.py install
 
- Testing
---------
+Testing
+-------
 
 ::
 
