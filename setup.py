@@ -4,7 +4,7 @@
 
 from distutils.core import setup
 
-VERSION = "0.1"
+VERSION = "0.2"
 
 base_url = "http://github.com/wharris/dougrain/"
 
