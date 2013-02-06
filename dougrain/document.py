@@ -11,8 +11,8 @@ import link
 import UserDict
 from functools import wraps
 
-class CanonicalRels(UserDict.DictMixin):
-    def __init__(self, rels, curie, base_uri):
+class CanonicalRels(UserDict.DictMixin, object):
+    def __init__(self, rels, curie, base_uri, allow_duplicate_url=True):
         if hasattr(rels, 'iteritems'):
             items = rels.iteritems()
         else:
@@ -34,7 +34,15 @@ class CanonicalRels(UserDict.DictMixin):
                 current_value = [current_value]
                 self.rels[canonical_key] = original_key, current_value
 
-            current_value.append(value)
+            if not allow_duplicate_url:
+                existing_urls = set(item.url() for item in current_value)
+            for item in value:
+                if not allow_duplicate_url:
+                    url = item.url()
+                    if url is not None and url in existing_urls:
+                        continue
+                    existing_urls.add(item.url())
+                current_value.append(item)
 
         self.rels = self.rels
 
@@ -61,7 +69,7 @@ class CanonicalRels(UserDict.DictMixin):
         return self.rels == canonical_other
 
 
-class Relationships(UserDict.DictMixin):
+class Relationships(UserDict.DictMixin, object):
     """Merged view of relationships from a HAL document.
 
     Relationships, that is links and embedded resources, are presented as a
@@ -80,7 +88,7 @@ class Relationships(UserDict.DictMixin):
     
     """
 
-    def __init__(self, links, embedded, curie):
+    def __init__(self, links, embedded, curie, base_uri):
         """Initialize a ``Relationships`` object.
 
         Parameters:
@@ -96,26 +104,17 @@ class Relationships(UserDict.DictMixin):
                         URLs.
 
         """
-        self.rels = {}
-
-        item_urls = set()
-        for key, values in itertools.chain(embedded.iteritems(),
-                                           links.iteritems()):
-            rel_key = curie.expand(key)
-
-            for value in values:
-                url = value.url()
-                if url is not None and url in item_urls:
-                    continue
-                item_urls.add(url)
-                
-                self.rels.setdefault(rel_key, []).append(value)
+        rels = itertools.chain(embedded.iteritems(), links.iteritems())
+        self.canonical_rels = CanonicalRels(rels, curie, base_uri, False)
 
     def __getitem__(self, key):
-        return self.rels[key]
+        value = self.canonical_rels.__getitem__(key)
+        if not isinstance(value, list):
+            value = [value]
+        return value
 
     def keys(self):
-        return self.rels.keys()
+        return self.canonical_rels.keys()
          
 
 def mutator(fn):
@@ -216,7 +215,8 @@ class Document(object):
         self.curie = load_curie_collection()
         self.links = links_cache()
         self.embedded = embedded_cache()
-        self.rels = Relationships(self.links, self.embedded, self.curie)
+        self.rels = Relationships(self.links, self.embedded, self.curie,
+                                  self.base_uri)
 
     def url(self):
         """Returns the URL for the resource based on the ``self`` link.
@@ -563,9 +563,13 @@ class Document(object):
         curies = self.o['_links']['curie']
         
         for i, curie in enumerate(curies):
-            if curie['name'] == name:
-                del curies[i]
-                break
+            try:
+                if curie['name'] == name:
+                    del curies[i]
+                    break
+            except:
+                import pdb;pdb.set_trace()
+            continue
 
     def __iter__(self):
         yield self
