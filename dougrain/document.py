@@ -12,7 +12,7 @@ import UserDict
 from functools import wraps
 
 class CanonicalRels(UserDict.DictMixin, object):
-    def __init__(self, rels, curie, base_uri, allow_duplicate_url=True):
+    def __init__(self, rels, curie, base_uri, item_filter=lambda _: True):
         if hasattr(rels, 'iteritems'):
             items = rels.iteritems()
         else:
@@ -30,19 +30,9 @@ class CanonicalRels(UserDict.DictMixin, object):
 
             original_key, current_value = self.rels[canonical_key]
 
-            if not hasattr(current_value, 'append'):
-                current_value = [current_value]
-                self.rels[canonical_key] = original_key, current_value
-
-            if not allow_duplicate_url:
-                existing_urls = set(item.url() for item in current_value)
-            for item in value:
-                if not allow_duplicate_url:
-                    url = item.url()
-                    if url is not None and url in existing_urls:
-                        continue
-                    existing_urls.add(item.url())
-                current_value.append(item)
+            new_value = [item for item in current_value if item_filter(item)]
+            new_value.extend(item for item in value if item_filter(item))
+            self.rels[canonical_key] = original_key, new_value
 
         self.rels = self.rels
 
@@ -105,7 +95,16 @@ class Relationships(UserDict.DictMixin, object):
 
         """
         rels = itertools.chain(embedded.iteritems(), links.iteritems())
-        self.canonical_rels = CanonicalRels(rels, curie, base_uri, False)
+
+        existing_urls = set()
+        def item_filter(item):
+            url = item.url()
+            if url is not None and url in existing_urls:
+                return False
+            existing_urls.add(item.url())
+            return True
+
+        self.canonical_rels = CanonicalRels(rels, curie, base_uri, item_filter)
 
     def __getitem__(self, key):
         value = self.canonical_rels.__getitem__(key)
