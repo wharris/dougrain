@@ -12,7 +12,54 @@ import UserDict
 from functools import wraps
 
 class CanonicalRels(UserDict.DictMixin, object):
+    """Smart querying of link relationship types and link relationships.
+
+    A ``CanonicalRels`` instance is a read-only dictionary-like object that
+    provides smart retrieval and de-duplication by link relationship type. It
+    is used to make access to links and embedded resources more convenient.
+    
+    In addition to well-know link relationship types (eg. ``"self"``), keys can
+    be custom link relationship types represented as URIs (eg.
+    ``"http://example.com/rels/comments"``), or as URI references (eg.
+    ``"/rels/comments"``), or as CURIEs (eg. ``"rel:comments"``).
+    ``CanonicalRels`` treats custom link relationship types as equivalent if
+    they expand to the same URI, called the canonical key here. Given a
+    suitable base URI and set of CURIE templates,
+    ``http://example.com/rels/comments``, ``/rels/comments``, and
+    ``rel:comments`` are all equivalent.
+
+    ``CanonicalRels`` de-duplicates items with equivalent keys.  De-duplication
+    is achieved by appending the new values to the existing values for the
+    canonical key. So, ``{"/rels/spam":eggs,"rel:spam":ham}`` becomes
+    ``{"http://example.com/rels/spam":[eggs,ham]}``.
+
+    Values can be retrieved using any key that is equivalent to the item's
+    canonical key.
+
+    """
     def __init__(self, rels, curie, base_uri, item_filter=lambda _: True):
+        """Create a ``CanonicalRels`` instance.
+        
+        Arguments:
+
+        - ``rels``:        the relationships to be queried. ``rels`` should be
+                           a sequence of ``(key, value)`` tuples or an object
+                           with an ``iteritems`` method that returns such a
+                           sequence (such as a dictionary). For each tuple in
+                           the sequence, ``key`` is a string that identifies
+                           the link relationship type and ``value`` is the
+                           target of the relationship or a sequence of targets
+                           of the relationship.
+        - ``curie``:       a ``CurieCollection`` used to expand CURIE keys.
+        - ``base_uri``:    URL used as the basis when expanding keys that are
+                           relative URI references.
+        - ``item_filter``: optional filter on target relationships.
+                           ``item_filter`` should be a callable that accepts a
+                           target relationship and returns False if the target
+                           relationship should be excluded. ``item_filter``
+                           will be called once with each target relationship.
+
+        """
         if hasattr(rels, 'iteritems'):
             items = rels.iteritems()
         else:
@@ -37,26 +84,49 @@ class CanonicalRels(UserDict.DictMixin, object):
         self.rels = self.rels
 
     def canonical_key(self, key):
+        """Returns the canonical key for the given ``key``."""
         if key.startswith('/'):
             return urlparse.urljoin(self.base_uri, key)
         else:
             return self.curie.expand(key)
 
     def original_key(self, key):
+        """Returns the first key seen for the given ``key``."""
         return self.rels[self.canonical_key(key)][0]
 
     def __getitem__(self, key):
+        """Returns the link relationship that match the given ``key``.
+
+        ``self[key]`` will return any link relationship who's key is equivalent
+        to ``key``. Keys are equivalent if their canonical keys are equal.
+
+        If there is more than one link relationship that matches ``key``, a
+        list of matching link relationships is returned.
+
+        If there is one link relationship that matches ``key``, that link
+        relationship is returned.
+
+        If there are no link relationships that match ``key``, a ``KeyError``
+        is thrown.
+
+        """
         return self.rels[self.canonical_key(key)][1]
 
     def __contains__(self, key):
+        """Returns ``True`` if there are any link relationships for for
+        ``self[key].``
+        
+        """
         return self.canonical_key(key) in self.rels
 
     def keys(self):
-        return [original_key for original_key, _ in self.rels.itervalues()]
+        """Returns a list of keys that map to every item.
 
-    def __equals__(self, other):
-        canonical_other = CanonicalRels(other, self.curie, self.base_uri).links
-        return self.rels == canonical_other
+        Each key returned is an original key. That is, the first key
+        encountered for the canonical key.
+
+        """
+        return [original_key for original_key, _ in self.rels.itervalues()]
 
 
 class Relationships(UserDict.DictMixin, object):
@@ -71,10 +141,9 @@ class Relationships(UserDict.DictMixin, object):
     relationships are presented in the order they appear in their respective
     collection.
 
-    Relationionships are deduplicated by their URL, as defined by their
-    ``self`` link in the case of embedded resources and by their ``href``
-    in the case of links. Only the first relationship with that URL will be
-    included.
+    Relationships are de-duplicated by their URL, as defined by their ``self``
+    link in the case of embedded resources and by their ``href`` in the case of
+    links. Only the first relationship with that URL will be included.
     
     """
 
@@ -479,7 +548,7 @@ class Document(object):
         """Removes an embedded resource from this document.
 
         Calling code should use this method to remove embedded resources
-        instead of modyfying ``embedded`` directly.
+        instead of modifying ``embedded`` directly.
 
         The optional arguments, ``rel`` and ``href`` are used to select the
         embedded resources that will be removed. If neither of the optional
