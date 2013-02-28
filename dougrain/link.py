@@ -25,8 +25,8 @@ class Link(object):
         if 'name' in json_object:
             self.name = json_object['name']
 
-        if 'label' in json_object:
-            self.label = json_object['label']
+        if 'title' in json_object:
+            self.title = json_object['title']
 
         self.variables = extract_variables(self.href)
         if base_uri is None:

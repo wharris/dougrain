@@ -20,8 +20,8 @@ class TestParseAbsoluteLink(unittest.TestCase):
     def testNameIsMissing(self):
         self.assertFalse(hasattr(self.link, 'name'))
 
-    def testLabelIsMissing(self):
-        self.assertFalse(hasattr(self.link, 'label'))
+    def testTitleIsMissing(self):
+        self.assertFalse(hasattr(self.link, 'title'))
 
 
 class TestParseRelativeLink(unittest.TestCase):
@@ -39,8 +39,8 @@ class TestParseRelativeLink(unittest.TestCase):
     def testNameIsMissing(self):
         self.assertFalse(hasattr(self.link, 'name'))
 
-    def testLabelIsMissing(self):
-        self.assertFalse(hasattr(self.link, 'label'))
+    def testTitleIsMissing(self):
+        self.assertFalse(hasattr(self.link, 'title'))
 
 
 class TestParseAdditionalAttributes(unittest.TestCase):
@@ -49,7 +49,7 @@ class TestParseAdditionalAttributes(unittest.TestCase):
             {
                 'href': "/foo",
                 'name': "bar",
-                'label': "Bar"
+                'title': "Bar"
             },
             "http://localhost/"
         )
@@ -57,8 +57,8 @@ class TestParseAdditionalAttributes(unittest.TestCase):
     def testLoadsName(self):
         self.assertEquals("bar", self.link.name)
 
-    def testLoadsLabel(self):
-        self.assertEquals("Bar", self.link.label)
+    def testLoadsTitle(self):
+        self.assertEquals("Bar", self.link.title)
 
 
 class TestExpandTemplatedLink(unittest.TestCase):

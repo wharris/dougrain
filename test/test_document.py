@@ -22,7 +22,7 @@ class ParseLinksTest(unittest.TestCase):
             "self": {"href": "dougrain"},
             "next": {
                 "href": "http://localhost/wharris/esmre",
-                "label": "Next"
+                "title": "Next"
             },
             "parent": {"href": "/wharris/"},
             "images": [
@@ -59,10 +59,10 @@ class ParseLinksTest(unittest.TestCase):
 
         self.assertEquals(self.doc.links["self"].url(), self.doc.url())
 
-    def testLoadsLabel(self):
-        self.assertEquals("Next", self.doc.links["next"].label)
-        self.assertFalse(hasattr(self.doc.links["parent"], "label"))
-        self.assertFalse(hasattr(self.doc.links["self"], "label"))
+    def testLoadsTitle(self):
+        self.assertEquals("Next", self.doc.links["next"].title)
+        self.assertFalse(hasattr(self.doc.links["parent"], "title"))
+        self.assertFalse(hasattr(self.doc.links["self"], "title"))
 
     def testLoadsArrayOfLinks(self):
         self.assertEquals(["/foo", "/bar"],
@@ -432,17 +432,17 @@ class AddLinkStringTests(unittest.TestCase):
             '_links': {
                 'self': {'href': "http://localhost/2"},
                 'child': [{'href': "http://localhost/2/1",
-                           'label': "First Child"},
+                           'title': "First Child"},
                           {'href': "http://localhost/2/2",
-                           'label': "Second Child"}]
+                           'title': "Second Child"}]
             }
         }
         doc = dougrain.Document.empty()
         self.add_link(doc, 'self', "http://localhost/2")
         self.add_link(doc, 'child', "http://localhost/2/1",
-                      label="First Child")
+                      title="First Child")
         self.add_link(doc, 'child', "http://localhost/2/2",
-                      label="Second Child")
+                      title="Second Child")
 
         self.assertEquals(target, doc.as_object())
 
