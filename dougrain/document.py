@@ -322,7 +322,7 @@ class Document(object):
         return self.o
 
     def as_link(self):
-        """Returns a `Link` to the resource."""
+        """Returns a ``Link`` to the resource."""
         return self.links['self']
 
     @mutator
@@ -475,7 +475,7 @@ class Document(object):
 
     @classmethod
     def from_object(cls, o, base_uri=None, parent_curie=None):
-        """Returns a new ``Document`` based on a JSON object.
+        """Returns a new ``Document`` based on a JSON object or array.
 
         Arguments:
 
