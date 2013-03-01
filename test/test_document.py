@@ -132,7 +132,8 @@ class CurieExpansionTest(unittest.TestCase):
                 },
                 {
                     'href': "http://localhost/images/{rel}",
-                    'name': 'image'
+                    'name': 'image',
+                    'templated': True
                 }
             ],
             'role:host': {'href': "/hosts/1"}
@@ -866,7 +867,8 @@ class CurieHidingTests(unittest.TestCase):
             '_links': {
                 'curie': {
                     'href': "http://localhost/rel/{rel}",
-                    'name': "rel"
+                    'name': "rel",
+                    'templated': True
                 },
                 'self': {
                     'href': "http://localhost/0"
@@ -905,7 +907,9 @@ class LinkCanonicalizationTests(unittest.TestCase):
             {
                 "_links": {
                     "curie": [
-                        {"href": "/roles/{rel}", "name": "role"}
+                        {"href": "/roles/{rel}",
+                         "name": "role",
+                         "templated": True}
                     ],
                     "self": {"href": "/1"},
                     "role:app": {"href": "/apps/1"},

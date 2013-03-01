@@ -85,6 +85,29 @@ class TestExpandTemplatedLink(unittest.TestCase):
         self.assertEquals("http://localhost/foo/{arg1}", self.link.template)
 
 
+class TestDoNotExpandNonTemplateLinks(unittest.TestCase):
+    def setUp(self):
+        self.link = link.Link(
+            {
+                'href': "/foo/{arg1}"
+            },
+            "http://localhost/"
+        )
+
+    def testHasNoArgs(self):
+        self.assertEquals([], self.link.variables)
+
+    def testSubstituteNoArgs(self):
+        self.assertEquals("http://localhost/foo/{arg1}", self.link.url())
+
+    def testSubstituteArg(self):
+        self.assertEquals("http://localhost/foo/{arg1}",
+                          self.link.url(arg1="1-bar"))
+
+    def testPreservesTemplate(self):
+        self.assertEquals("http://localhost/foo/{arg1}", self.link.template)
+
+
 class TestExtractVariablesFromLink(unittest.TestCase):
     def assertVariables(self, variables, href):
         if isinstance(variables, str):

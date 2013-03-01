@@ -1,6 +1,12 @@
 Change Log
 ----------
 
+0.3
+===
+
+* BUG FIX: Links now have a title property instead of a label property.
+* BUG FIX: Non-templated links are no longer treated as templates.
+
 0.2
 ===
 

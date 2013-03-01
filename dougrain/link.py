@@ -49,7 +49,13 @@ class Link(object):
         if 'title' in json_object:
             self.title = json_object['title']
 
-        self.variables = extract_variables(self.href)
+        self.is_templated = self.o.get('templated', False) == True
+
+        if self.is_templated:
+            self.variables = extract_variables(self.href)
+        else:
+            self.variables = []
+
         if base_uri is None:
             self.template = self.href
         else:
@@ -58,10 +64,17 @@ class Link(object):
     def url(self, **kwargs):
         """Returns a URL for the link with optional template expansion.
 
-        Template variables are provided in the keyword arguments.
+        If the link is marked as templated, the href will be expanded according
+        to RFC6570, using template variables provided in the keyword arguments.
+        If the href is a valid URI Template, but the link is not marked as
+        templated, the href will not be expanded even if template variables are
+        provided.
 
         """
-        return uritemplate.expand(self.template, kwargs)
+        if self.is_templated:
+            return uritemplate.expand(self.template, kwargs)
+        else:
+            return self.template
 
     def as_object(self):
         """Returns a dictionary representing the HAL JSON link."""

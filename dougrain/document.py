@@ -619,7 +619,7 @@ class Document(object):
         document.
 
         """
-        self.add_link('curie', href, name=name)
+        self.add_link('curie', href, name=name, templated=True)
 
     @mutator
     def drop_curie(self, name):
