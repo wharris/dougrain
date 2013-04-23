@@ -1,7 +1,7 @@
 Dougrain
 ========
 
-Dougrain is a Python library to help you work with the JSON varient of
+Dougrain is a Python library to help you work with the JSON variant of
 the `Hypertext Application
 Language <http://stateless.co/hal_specification.html>`_ as defined in
 the `JSON Hypermedia API Language Internet
