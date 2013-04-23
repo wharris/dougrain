@@ -124,7 +124,7 @@ class ParseEmbeddedObjectsTest(unittest.TestCase):
 class CurieExpansionTest(unittest.TestCase):
     OBJECT = {
         '_links': {
-            'curie': [
+            'curies': [
                 {
                     'href': "http://localhost/roles/{rel}",
                     'name': 'role',
@@ -141,10 +141,9 @@ class CurieExpansionTest(unittest.TestCase):
         '_embedded': {
             'role:sizing': {
                 '_links': {
-                    'curie': [
+                    'curies': [
                         {
-                            'href':
-                            "http://localhost/dimension/{rel}",
+                            'href': "http://localhost/dimension/{rel}",
                             'name': 'dim',
                             'templated': True
                         }
@@ -153,7 +152,7 @@ class CurieExpansionTest(unittest.TestCase):
             },
             'role:coloring': {
                 '_links': {
-                    'curie': [
+                    'curies': [
                         {
                             'href':
                             "http://localhost/imagefiles/{rel}",
@@ -195,7 +194,7 @@ class CurieExpansionTest(unittest.TestCase):
 class RelsTest(unittest.TestCase):
     OBJECT = {
         '_links': {
-            'curie': [
+            'curies': [
                 {
                     'href': "/roles/{rel}",
                     'name': 'role',
@@ -865,11 +864,11 @@ class CurieHidingTests(unittest.TestCase):
     def testCuriesAreNotLinks(self):
         doc = dougrain.Document({
             '_links': {
-                'curie': {
+                'curies': [{
                     'href': "http://localhost/rel/{rel}",
                     'name': "rel",
                     'templated': True
-                },
+                }],
                 'self': {
                     'href': "http://localhost/0"
                 }
@@ -906,7 +905,7 @@ class LinkCanonicalizationTests(unittest.TestCase):
         self.doc = dougrain.Document.from_object(
             {
                 "_links": {
-                    "curie": [
+                    "curies": [
                         {"href": "/roles/{rel}",
                          "name": "role",
                          "templated": True}

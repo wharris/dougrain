@@ -37,7 +37,7 @@ class CanonicalRels(UserDict.DictMixin, object):
     canonical key.
 
     """
-    def __init__(self, rels, curie, base_uri, item_filter=lambda _: True):
+    def __init__(self, rels, curies, base_uri, item_filter=lambda _: True):
         """Create a ``CanonicalRels`` instance.
         
         Arguments:
@@ -50,7 +50,7 @@ class CanonicalRels(UserDict.DictMixin, object):
                            the link relationship type and ``value`` is the
                            target of the relationship or a sequence of targets
                            of the relationship.
-        - ``curie``:       a ``CurieCollection`` used to expand CURIE keys.
+        - ``curies``:      a ``CurieCollection`` used to expand CURIE keys.
         - ``base_uri``:    URL used as the basis when expanding keys that are
                            relative URI references.
         - ``item_filter``: optional filter on target relationships.
@@ -65,7 +65,7 @@ class CanonicalRels(UserDict.DictMixin, object):
         else:
             items = rels
 
-        self.curie = curie
+        self.curies = curies
         self.base_uri = base_uri
         self.rels = {}
 
@@ -88,7 +88,7 @@ class CanonicalRels(UserDict.DictMixin, object):
         if key.startswith('/'):
             return urlparse.urljoin(self.base_uri, key)
         else:
-            return self.curie.expand(key)
+            return self.curies.expand(key)
 
     def original_key(self, key):
         """Returns the first key seen for the given ``key``."""
@@ -147,7 +147,7 @@ class Relationships(UserDict.DictMixin, object):
     
     """
 
-    def __init__(self, links, embedded, curie, base_uri):
+    def __init__(self, links, embedded, curies, base_uri):
         """Initialize a ``Relationships`` object.
 
         Parameters:
@@ -158,7 +158,7 @@ class Relationships(UserDict.DictMixin, object):
         - ``embedded``: a dictionary mapping a link relationship type to a
                         ``Document`` instance or a ``list`` of ``Document``
                         instances.
-        - ``curie``:    a ``CurieCollection`` instance used to expand
+        - ``curies``:   a ``CurieCollection`` instance used to expand
                         link relationship type into full link relationship type
                         URLs.
 
@@ -173,7 +173,7 @@ class Relationships(UserDict.DictMixin, object):
             existing_urls.add(item.url())
             return True
 
-        self.canonical_rels = CanonicalRels(rels, curie, base_uri, item_filter)
+        self.canonical_rels = CanonicalRels(rels, curies, base_uri, item_filter)
 
     def __getitem__(self, key):
         value = self.canonical_rels.__getitem__(key)
@@ -209,7 +209,7 @@ class Document(object):
 
     - ``Document.empty(base_uri=None)``:
         returns an empty ``Document``.
-    - ``Document.from_object(o, base_uri=None, parent_curie=None)``:
+    - ``Document.from_object(o, base_uri=None, parent_curies=None)``:
         returns a new ``Document`` based on a JSON object.
 
     Public Instance Attributes:
@@ -218,7 +218,7 @@ class Document(object):
                       excluding ``_links`` and ``_embedded``. ``properties``
                       should be treated as read-only.
     - ``links``: ``dict`` containing the document's links, excluding
-                 ``curie``. Each link relationship type is mapped to a ``Link``
+                 ``curies``. Each link relationship type is mapped to a ``Link``
                  instance or a list of ``Link`` instances. ``links`` should be
                  treated as read-only.
     - ``embedded``: dictionary containing the document's embedded resources.
@@ -228,13 +228,14 @@ class Document(object):
                 relationships from the document.
 
     """
-    def __init__(self, o, base_uri, parent_curie=None):
+    def __init__(self, o, base_uri, parent_curies=None):
         self.o = o
-        self.parent_curie = parent_curie
+        self.parent_curies = parent_curies
         self.base_uri = base_uri
         self.prepare_cache()
 
     RESERVED_ATTRIBUTE_NAMES = ('_links', '_embedded')
+    CURIES_REL = 'curies'
 
     def prepare_cache(self):
         def properties_cache():
@@ -248,19 +249,19 @@ class Document(object):
             links = {}
 
             for key, value in self.o.get("_links", {}).iteritems():
-                if key == 'curie':
+                if key == self.CURIES_REL:
                     continue
                 links[key] = link.Link.from_object(value, self.base_uri)
 
-            return CanonicalRels(links, self.curie, self.base_uri)
+            return CanonicalRels(links, self.curies, self.base_uri)
 
         def load_curie_collection():
             result = curie.CurieCollection()
-            if self.parent_curie is not None:
-                result.update(self.parent_curie)
+            if self.parent_curies is not None:
+                result.update(self.parent_curies)
 
             curies = link.Link.from_object(
-                self.o.get('_links', {}).get('curie', []),
+                self.o.get('_links', {}).get(self.CURIES_REL, []),
                 self.base_uri)
 
             if not isinstance(curies, list):
@@ -276,14 +277,14 @@ class Document(object):
             for key, value in self.o.get("_embedded", {}).iteritems():
                 embedded[key] = self.from_object(value,
                                                  self.base_uri,
-                                                 self.curie)
-            return CanonicalRels(embedded, self.curie, self.base_uri)
+                                                 self.curies)
+            return CanonicalRels(embedded, self.curies, self.base_uri)
 
         self.properties = properties_cache()
-        self.curie = load_curie_collection()
+        self.curies = load_curie_collection()
         self.links = links_cache()
         self.embedded = embedded_cache()
-        self.rels = Relationships(self.links, self.embedded, self.curie,
+        self.rels = Relationships(self.links, self.embedded, self.curies,
                                   self.base_uri)
 
     def url(self):
@@ -311,11 +312,11 @@ class Document(object):
         Arguments:
         - ``link``: a string holding a curie value to expand.
 
-        This method attempts to expand ``link`` using the document's ``curie``
+        This method attempts to expand ``link`` using the document's ``curies``
         collection (see ``curie.CurieCollection.expand``).
 
         """
-        return self.curie.expand(link)
+        return self.curies.expand(link)
 
     def as_object(self):
         """Returns a dictionary representing the HAL JSON document."""
@@ -402,7 +403,7 @@ class Document(object):
         links = self.o.setdefault('_links', {})
         
         new_link = link.as_object()
-        collected_links = CanonicalRels(links, self.curie, self.base_uri)
+        collected_links = CanonicalRels(links, self.curies, self.base_uri)
         if rel not in collected_links:
             links[rel] = new_link
             return
@@ -474,7 +475,7 @@ class Document(object):
             del self.o['_links']
 
     @classmethod
-    def from_object(cls, o, base_uri=None, parent_curie=None):
+    def from_object(cls, o, base_uri=None, parent_curies=None):
         """Returns a new ``Document`` based on a JSON object or array.
 
         Arguments:
@@ -483,16 +484,16 @@ class Document(object):
                  ``Document``, or a ``list`` of such documents.
         - ``base_uri``: optional URL used as the basis when expanding
                                relative URLs in the document.
-        - ``parent_curie``: optional ``CurieCollection`` instance holding the
-                            CURIEs of the parent document in which the new
-                            document is to be embedded. Calling code should not
-                            normally provide this argument.
+        - ``parent_curies``: optional ``CurieCollection`` instance holding the
+                             CURIEs of the parent document in which the new
+                             document is to be embedded. Calling code should not
+                             normally provide this argument.
 
         """
         if isinstance(o, list):
             return map(lambda x: cls.from_object(x, base_uri), o)
 
-        return cls(o, base_uri, parent_curie)
+        return cls(o, base_uri, parent_curies)
 
     @classmethod
     def empty(cls, base_uri=None):
@@ -529,7 +530,7 @@ class Document(object):
 
         """
         embedded = self.o.setdefault('_embedded', {})
-        collected_embedded = CanonicalRels(embedded, self.curie, self.base_uri)
+        collected_embedded = CanonicalRels(embedded, self.curies, self.base_uri)
 
         if rel not in collected_embedded:
             embedded[rel] = other.as_object()
@@ -619,7 +620,7 @@ class Document(object):
         document.
 
         """
-        self.add_link('curie', href, name=name, templated=True)
+        self.add_link(self.CURIES_REL, href, name=name, templated=True)
 
     @mutator
     def drop_curie(self, name):
@@ -628,7 +629,7 @@ class Document(object):
         The CURIE link with the given name is removed from the document.
 
         """
-        curies = self.o['_links']['curie']
+        curies = self.o['_links'][self.CURIES_REL]
         
         for i, curie in enumerate(curies):
             try:
