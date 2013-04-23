@@ -40,6 +40,10 @@ class Link(object):
                    Absent if the link does not specify a profile.
     - ``hreflang``: ``str`` indicating the language of the target. Absent if
                     the link does not specify a language.
+    - ``deprecation``: ``str`` indicating that the link is deprecated. The
+                       value of the string should be a URL that provides
+                       further infomation about the deprecation. Absent if the
+                       link is not marked as deprecated.
     - ``variables``: ``list`` of names of template variables that may be
                      expanded for templated links. Empty if there are no
                      template variables.
@@ -63,6 +67,9 @@ class Link(object):
 
         if 'hreflang' in json_object:
             self.hreflang = json_object['hreflang']
+
+        if 'deprecation' in json_object:
+            self.deprecation = json_object['deprecation']
 
         self.is_templated = self.o.get('templated', False) == True
 
