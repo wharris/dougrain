@@ -620,6 +620,9 @@ class Document(object):
         document.
 
         """
+
+        # CURIE links should always be in an array, even if there is only one.
+        self.o.setdefault('_links', {}).setdefault(self.CURIES_REL, [])
         self.add_link(self.CURIES_REL, href, name=name, templated=True)
 
     @mutator

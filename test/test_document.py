@@ -838,6 +838,7 @@ class CurieMutationTest(unittest.TestCase):
         new_doc = dougrain.Document(doc.as_object(), doc.base_uri)
         self.assertEquals("http://localhost/rels/foo",
                           new_doc.expand_curie("rel:foo"))
+        self.assertEquals(type(doc.as_object()['_links']['curies']), list)
 
     def testReplaceCurie(self):
         doc = make_doc("http://localhost/3")
