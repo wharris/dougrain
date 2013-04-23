@@ -5,7 +5,7 @@ Dougrain is a Python library to help you work with the JSON variant of
 the `Hypertext Application
 Language <http://stateless.co/hal_specification.html>`_ as defined in
 the `JSON Hypermedia API Language Internet
-Draft 3 <http://tools.ietf.org/html/draft-kelly-json-hal-03>`_. It uses
+Draft 4 <http://tools.ietf.org/html/draft-kelly-json-hal-04>`_. It uses
 Python objects to represent the JSON document, so you can use it with
 simplejson or the json module from the standard library.
 
