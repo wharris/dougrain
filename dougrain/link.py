@@ -34,6 +34,12 @@ class Link(object):
                 has no name.
     - ``title``: ``str`` containing the title of the link. Absent if the link
                  has no title.
+    - ``type``: ``str`` containing the type of the link. Absent if the link
+                does not specify a type.
+    - ``profile``: ``str`` containing the profile URL reference of the link.
+                   Absent if the link does not specify a profile.
+    - ``hreflang``: ``str`` indicating the language of the target. Absent if
+                    the link does not specify a language.
     - ``variables``: ``list`` of names of template variables that may be
                      expanded for templated links. Empty if there are no
                      template variables.
@@ -48,6 +54,15 @@ class Link(object):
 
         if 'title' in json_object:
             self.title = json_object['title']
+
+        if 'type' in json_object:
+            self.type = json_object['type']
+
+        if 'profile' in json_object:
+            self.profile = json_object['profile']
+
+        if 'hreflang' in json_object:
+            self.hreflang = json_object['hreflang']
 
         self.is_templated = self.o.get('templated', False) == True
 

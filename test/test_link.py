@@ -49,7 +49,10 @@ class TestParseAdditionalAttributes(unittest.TestCase):
             {
                 'href': "/foo",
                 'name': "bar",
-                'title': "Bar"
+                'title': "Bar",
+                'type': "application/hal+json",
+                'profile': "/profiles/foo",
+                'hreflang': "en"
             },
             "http://localhost/"
         )
@@ -59,6 +62,15 @@ class TestParseAdditionalAttributes(unittest.TestCase):
 
     def testLoadsTitle(self):
         self.assertEquals("Bar", self.link.title)
+
+    def testLoadsType(self):
+        self.assertEquals("application/hal+json", self.link.type)
+
+    def testLoadsProfile(self):
+        self.assertEquals("/profiles/foo", self.link.profile)
+
+    def testLoadsHreflang(self):
+        self.assertEquals("en", self.link.hreflang)
 
 
 class TestExpandTemplatedLink(unittest.TestCase):
