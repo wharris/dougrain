@@ -236,6 +236,7 @@ class Document(object):
 
     RESERVED_ATTRIBUTE_NAMES = ('_links', '_embedded')
     CURIES_REL = 'curies'
+    OLD_CURIES_REL = 'curie'
 
     def prepare_cache(self):
         def properties_cache():
@@ -248,8 +249,13 @@ class Document(object):
         def links_cache():
             links = {}
 
-            for key, value in self.o.get("_links", {}).iteritems():
-                if key == self.CURIES_REL:
+            links_json = self.o.get("_links", {})
+            curies_rel = self.OLD_CURIES_REL
+            if self.CURIES_REL in links_json:
+                curies_rel = self.CURIES_REL
+
+            for key, value in links_json.iteritems():
+                if key == curies_rel:
                     continue
                 links[key] = link.Link.from_object(value, self.base_uri)
 
@@ -260,9 +266,16 @@ class Document(object):
             if self.parent_curies is not None:
                 result.update(self.parent_curies)
 
-            curies = link.Link.from_object(
-                self.o.get('_links', {}).get(self.CURIES_REL, []),
-                self.base_uri)
+            links_json = self.o.get('_links', {})
+            curies_json = links_json.get(self.CURIES_REL)
+
+            if not curies_json:
+                curies_json = links_json.get(self.OLD_CURIES_REL)
+
+            if not curies_json:
+                return result
+
+            curies = link.Link.from_object(curies_json, self.base_uri)
 
             if not isinstance(curies, list):
                 curies = [curies]

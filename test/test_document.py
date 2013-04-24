@@ -190,6 +190,45 @@ class CurieExpansionTest(unittest.TestCase):
         self.assertEquals("http://localhost/imagefiles/photo",
                           coloring_doc.expand_curie('image:photo'))
 
+class CurieExpansionTestDraft3(CurieExpansionTest):
+    OBJECT = {
+        '_links': {
+            'curie': [
+                {
+                    'href': "http://localhost/roles/{rel}",
+                    'name': 'role',
+                    'templated': True
+                },
+                {
+                    'href': "http://localhost/images/{rel}",
+                    'name': 'image',
+                    'templated': True
+                }
+            ],
+            'role:host': {'href': "/hosts/1"}
+        },
+        '_embedded': {
+            'role:sizing': {
+                '_links': {
+                    'curie': {
+                        'href': "http://localhost/dimension/{rel}",
+                        'name': 'dim',
+                        'templated': True
+                    }
+                }
+            },
+            'role:coloring': {
+                '_links': {
+                    'curie': {
+                        'href': "http://localhost/imagefiles/{rel}",
+                        'name': 'image',
+                        'templated': True
+                    }
+                }
+            },
+        }
+    }
+
 
 class RelsTest(unittest.TestCase):
     OBJECT = {
@@ -285,6 +324,60 @@ class RelsTest(unittest.TestCase):
             urls)
 
 
+class RelsTestDraft3(RelsTest):
+    OBJECT = {
+        '_links': {
+            'curie': [
+                {
+                    'href': "/roles/{rel}",
+                    'name': 'role',
+                    'templated': True
+                },
+                {
+                    'href': "http://localhost/images/{rel}",
+                    'name': 'image',
+                    'templated': True
+                }
+            ],
+            'role:host': {'href': "/hosts/1"},
+            'role:application': {'href': "/apps/1"},
+            'role:dept': [
+                {'href': "/departments/1"},
+                {'href': "/departments/2"}
+            ]
+        },
+        '_embedded': {
+            'role:consumer': {
+                '_links': {
+                    'self': {
+                        'href': '/clients/1'
+                    }
+                },
+                'name': "Client 1"
+            },
+            'role:application': {
+                '_links': {
+                    'self': { 'href': "/apps/2" }
+                }
+            },
+            'role:dept': [
+                {
+                    '_links': {
+                        'self': {
+                            'href': "http://localhost/departments/2"
+                        }
+                    },
+                },
+                {
+                    '_links': {
+                        'self': { 'href': "/departments/3" }
+                    }
+                }
+            ]
+        }
+    }
+
+
 class SerializeTests(unittest.TestCase):
     def checkEqualObjects(self, obj):
         doc = dougrain.Document.from_object(obj, "http://localhost")
@@ -308,6 +401,10 @@ class SerializeTests(unittest.TestCase):
     def testRels(self):
         self.checkEqualObjects(CurieExpansionTest.OBJECT)
         self.checkEqualObjects(RelsTest.OBJECT)
+
+    def testRelsDraft3(self):
+        self.checkEqualObjects(CurieExpansionTestDraft3.OBJECT)
+        self.checkEqualObjects(RelsTestDraft3.OBJECT)
 
 
 class AttributeMutationTests(unittest.TestCase):
@@ -695,23 +792,20 @@ class TestIteration(unittest.TestCase):
         self.assertEquals(1, count)
 
 
-def make_doc(href):
-    result = dougrain.Document.empty("http://localhost")
+def make_doc(href, *args, **kwargs):
+    result = dougrain.Document.empty("http://localhost", *args, **kwargs)
     result.add_link('self', href)
     return result
 
 
 class DeleteEmbeddedTests(unittest.TestCase):
-    def doc(self, href):
-        return make_doc(href)
-
     def testDeleteOnlyEmbedForRel(self):
-        doc = self.doc("http://localhost/2")
-        doc.embed('child', self.doc("http://localhost/2/1"))
-        doc.embed('root', self.doc("http://localhost/"))
+        doc = make_doc("http://localhost/2")
+        doc.embed('child', make_doc("http://localhost/2/1"))
+        doc.embed('root', make_doc("http://localhost/"))
 
-        target_doc = self.doc("http://localhost/2")
-        target_doc.embed('root', self.doc("http://localhost/"))
+        target_doc = make_doc("http://localhost/2")
+        target_doc.embed('root', make_doc("http://localhost/"))
 
         doc.delete_embedded("child")
 
@@ -720,14 +814,14 @@ class DeleteEmbeddedTests(unittest.TestCase):
         self.assertTrue('root' in doc.embedded)
 
     def testDeleteEveryEmbedForRel(self):
-        doc = self.doc("http://localhost/2")
-        doc.embed('root', self.doc("http://localhost/"))
-        doc.embed('child', self.doc("http://localhost/2/1"))
-        doc.embed('child', self.doc("http://localhost/2/1"))
-        doc.embed('child', self.doc("http://localhost/2/1"))
+        doc = make_doc("http://localhost/2")
+        doc.embed('root', make_doc("http://localhost/"))
+        doc.embed('child', make_doc("http://localhost/2/1"))
+        doc.embed('child', make_doc("http://localhost/2/1"))
+        doc.embed('child', make_doc("http://localhost/2/1"))
 
-        target_doc = self.doc("http://localhost/2")
-        target_doc.embed('root', self.doc("http://localhost/"))
+        target_doc = make_doc("http://localhost/2")
+        target_doc.embed('root', make_doc("http://localhost/"))
 
         doc.delete_embedded("child")
 
@@ -736,11 +830,11 @@ class DeleteEmbeddedTests(unittest.TestCase):
         self.assertTrue('root' in doc.embedded)
 
     def testDeleteLastEmbed(self):
-        doc = self.doc("http://localhost/2")
-        doc.embed('root', self.doc("http://localhost/"))
-        doc.embed('child', self.doc("http://localhost/2/1"))
+        doc = make_doc("http://localhost/2")
+        doc.embed('root', make_doc("http://localhost/"))
+        doc.embed('child', make_doc("http://localhost/2/1"))
 
-        target_doc = self.doc("http://localhost/2")
+        target_doc = make_doc("http://localhost/2")
 
         doc.delete_embedded('root')
         doc.delete_embedded('child')
@@ -748,25 +842,25 @@ class DeleteEmbeddedTests(unittest.TestCase):
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
     def testDeleteIndividualEmbeds(self):
-        doc = self.doc("http://localhost/2")
-        doc.embed('root', self.doc("http://localhost/"))
-        doc.embed('child', self.doc("http://localhost/2/1"))
-        doc.embed('child', self.doc("http://localhost/2/2"))
-        doc.embed('child', self.doc("http://localhost/2/3"))
+        doc = make_doc("http://localhost/2")
+        doc.embed('root', make_doc("http://localhost/"))
+        doc.embed('child', make_doc("http://localhost/2/1"))
+        doc.embed('child', make_doc("http://localhost/2/2"))
+        doc.embed('child', make_doc("http://localhost/2/3"))
 
-        doc2 = self.doc("http://localhost/2")
-        doc2.embed('root', self.doc("http://localhost/"))
-        doc2.embed('child', self.doc("http://localhost/2/2"))
-        doc2.embed('child', self.doc("http://localhost/2/3"))
+        doc2 = make_doc("http://localhost/2")
+        doc2.embed('root', make_doc("http://localhost/"))
+        doc2.embed('child', make_doc("http://localhost/2/2"))
+        doc2.embed('child', make_doc("http://localhost/2/3"))
 
-        doc3 = self.doc("http://localhost/2")
-        doc3.embed('root', self.doc("http://localhost/"))
-        doc3.embed('child', self.doc("http://localhost/2/2"))
+        doc3 = make_doc("http://localhost/2")
+        doc3.embed('root', make_doc("http://localhost/"))
+        doc3.embed('child', make_doc("http://localhost/2/2"))
 
-        doc4 = self.doc("http://localhost/2")
-        doc4.embed('root', self.doc("http://localhost/"))
+        doc4 = make_doc("http://localhost/2")
+        doc4.embed('root', make_doc("http://localhost/"))
 
-        doc5 = self.doc("http://localhost/2")
+        doc5 = make_doc("http://localhost/2")
 
         doc.delete_embedded("child", "http://localhost/2/1")
         self.assertEquals(doc2.as_object(), doc.as_object())
@@ -781,40 +875,40 @@ class DeleteEmbeddedTests(unittest.TestCase):
         self.assertEquals(doc5.as_object(), doc.as_object())
 
     def testDeleteEmbedsWithoutRel(self):
-        doc = self.doc("http://localhost/3")
-        doc.embed('child', self.doc("http://localhost/3/1"))
-        doc.embed('child', self.doc("http://localhost/3/2"))
-        doc.embed('favorite', self.doc("http://localhost/3/1"))
+        doc = make_doc("http://localhost/3")
+        doc.embed('child', make_doc("http://localhost/3/1"))
+        doc.embed('child', make_doc("http://localhost/3/2"))
+        doc.embed('favorite', make_doc("http://localhost/3/1"))
 
-        target_doc = self.doc("http://localhost/3")
-        target_doc.embed('child', self.doc("http://localhost/3/2"))
+        target_doc = make_doc("http://localhost/3")
+        target_doc.embed('child', make_doc("http://localhost/3/2"))
 
         doc.delete_embedded(href="http://localhost/3/1")
 
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
     def testDeleteAllEmbeds(self):
-        doc = self.doc("http://localhost/3")
-        doc.embed('child', self.doc("http://localhost/3/1"))
-        doc.embed('child', self.doc("http://localhost/3/2"))
-        doc.embed('favorite', self.doc("http://localhost/3/1"))
+        doc = make_doc("http://localhost/3")
+        doc.embed('child', make_doc("http://localhost/3/1"))
+        doc.embed('child', make_doc("http://localhost/3/2"))
+        doc.embed('favorite', make_doc("http://localhost/3/1"))
 
-        target_doc = self.doc("http://localhost/3")
+        target_doc = make_doc("http://localhost/3")
 
         doc.delete_embedded()
 
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
     def testDeleteEmbedWithMissingRel(self):
-        doc = self.doc("http://localhost/3")
-        doc.embed('child', self.doc("http://localhost/3/1"))
-        doc.embed('child', self.doc("http://localhost/3/2"))
-        doc.embed('favorite', self.doc("http://localhost/3/1"))
+        doc = make_doc("http://localhost/3")
+        doc.embed('child', make_doc("http://localhost/3/1"))
+        doc.embed('child', make_doc("http://localhost/3/2"))
+        doc.embed('favorite', make_doc("http://localhost/3/1"))
 
-        target_doc = self.doc("http://localhost/3")
-        target_doc.embed('child', self.doc("http://localhost/3/1"))
-        target_doc.embed('child', self.doc("http://localhost/3/2"))
-        target_doc.embed('favorite', self.doc("http://localhost/3/1"))
+        target_doc = make_doc("http://localhost/3")
+        target_doc.embed('child', make_doc("http://localhost/3/1"))
+        target_doc.embed('child', make_doc("http://localhost/3/2"))
+        target_doc.embed('favorite', make_doc("http://localhost/3/1"))
 
         missing_rel = ''.join(doc.embedded.keys()) + '_'
         doc.delete_embedded(missing_rel)
@@ -822,8 +916,8 @@ class DeleteEmbeddedTests(unittest.TestCase):
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
     def testDeleteEmbedWithNoEmbeds(self):
-        doc = self.doc("http://localhost/3")
-        target_doc = self.doc("http://localhost/3")
+        doc = make_doc("http://localhost/3")
+        target_doc = make_doc("http://localhost/3")
 
         doc.delete_embedded()
 
@@ -876,7 +970,45 @@ class CurieHidingTests(unittest.TestCase):
             }
         }, "http://localhost/0")
 
+        self.assertFalse('curies' in doc.links)
+
+    def testDraft3CuriesAreNotLinks(self):
+        doc = dougrain.Document({
+            '_links': {
+                'curie': {
+                    'href': "http://localhost/rel/{rel}",
+                    'name': "rel",
+                    'templated': True
+                },
+                'self': {
+                    'href': "http://localhost/0"
+                }
+            }
+        }, "http://localhost/0")
+
         self.assertFalse('curie' in doc.links)
+
+    def testDraft3CuriesAreLinksInDraft4Document(self):
+        doc = dougrain.Document({
+            '_links': {
+                'curie': {
+                    'href': "http://localhost/rel/{rel}",
+                    'name': "rel",
+                    'templated': True
+                },
+                'curies': [{
+                    'href': "http://localhost/rel/{rel}",
+                    'name': "rel",
+                    'templated': True
+                }],
+                'self': {
+                    'href': "http://localhost/0"
+                }
+            }
+        }, "http://localhost/0")
+
+        self.assertFalse('curies' in doc.links)
+        self.assertTrue('curie' in doc.links)
                 
 
 class LinkCanonicalizationTests(unittest.TestCase):
