@@ -202,6 +202,25 @@ def mutator(fn):
     return deco
 
 
+class Draft(object):
+    DRAFT_3 = 'Draft.DRAFT_3'
+    DRAFT_4 = 'Draft.DRAFT_4'
+    LATEST = DRAFT_4
+    AUTO = 'Draft.AUTO'
+
+    @classmethod
+    def detect(cls, obj):
+        links = obj.get('_links', {})
+
+        if 'curies' in links:
+            return cls.DRAFT_4
+
+        if 'curie' in links:
+            return cls.DRAFT_3
+
+        return cls.DRAFT_4
+
+
 class Document(object):
     """Represents the document for a HAL resource.
 
@@ -228,10 +247,11 @@ class Document(object):
                 relationships from the document.
 
     """
-    def __init__(self, o, base_uri, parent_curies=None):
+    def __init__(self, o, base_uri, parent_curies=None, draft=Draft.AUTO):
         self.o = o
-        self.parent_curies = parent_curies
         self.base_uri = base_uri
+        self.parent_curies = parent_curies
+        self.draft = draft
         self.prepare_cache()
 
     RESERVED_ATTRIBUTE_NAMES = ('_links', '_embedded')
@@ -488,7 +508,8 @@ class Document(object):
             del self.o['_links']
 
     @classmethod
-    def from_object(cls, o, base_uri=None, parent_curies=None):
+    def from_object(cls, o, base_uri=None, parent_curies=None,
+                    draft=Draft.AUTO):
         """Returns a new ``Document`` based on a JSON object or array.
 
         Arguments:
@@ -503,13 +524,17 @@ class Document(object):
                              normally provide this argument.
 
         """
+
         if isinstance(o, list):
             return map(lambda x: cls.from_object(x, base_uri), o)
 
-        return cls(o, base_uri, parent_curies)
+        if draft == Draft.AUTO:
+            draft = Draft.detect(o)
+
+        return cls(o, base_uri, parent_curies, draft=draft)
 
     @classmethod
-    def empty(cls, base_uri=None):
+    def empty(cls, base_uri=None, draft=Draft.AUTO):
         """Returns an empty ``Document``.
 
         Arguments:
@@ -517,7 +542,7 @@ class Document(object):
         - ``base_uri``: optional URL used as the basis when expanding
                                relative URLs in the document.
         """
-        return cls.from_object({}, base_uri=base_uri)
+        return cls.from_object({}, base_uri=base_uri, draft=draft)
 
     @mutator
     def embed(self, rel, other):
@@ -634,9 +659,13 @@ class Document(object):
 
         """
 
-        # CURIE links should always be in an array, even if there is only one.
-        self.o.setdefault('_links', {}).setdefault(self.CURIES_REL, [])
-        self.add_link(self.CURIES_REL, href, name=name, templated=True)
+        if self.draft == Draft.DRAFT_3:
+            self.add_link(self.OLD_CURIES_REL, href, name=name, templated=True)
+        else:
+            # CURIE links should always be in an array, even if there is only
+            # one.
+            self.o.setdefault('_links', {}).setdefault(self.CURIES_REL, [])
+            self.add_link(self.CURIES_REL, href, name=name, templated=True)
 
     @mutator
     def drop_curie(self, name):
@@ -648,12 +677,10 @@ class Document(object):
         curies = self.o['_links'][self.CURIES_REL]
         
         for i, curie in enumerate(curies):
-            try:
-                if curie['name'] == name:
-                    del curies[i]
-                    break
-            except:
-                import pdb;pdb.set_trace()
+            if curie['name'] == name:
+                del curies[i]
+                break
+                
             continue
 
     def __iter__(self):

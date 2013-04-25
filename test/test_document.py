@@ -798,6 +798,10 @@ def make_doc(href, *args, **kwargs):
     return result
 
 
+def make_draft_3_doc(href, *args, **kwargs):
+    return make_doc(draft=dougrain.Draft.DRAFT_3)
+
+
 class DeleteEmbeddedTests(unittest.TestCase):
     def testDeleteOnlyEmbedForRel(self):
         doc = make_doc("http://localhost/2")
@@ -925,34 +929,64 @@ class DeleteEmbeddedTests(unittest.TestCase):
 
 
 class CurieMutationTest(unittest.TestCase):
-    def testSetCurie(self):
-        doc = make_doc("http://localhost/3")
-        doc.set_curie('rel', "http://localhost/rels/{rel}")
+    def setUp(self):
+        self.doc = make_doc("http://localhost/3")
+        self.doc.set_curie('rel', "http://localhost/rels/{rel}")
 
-        new_doc = dougrain.Document(doc.as_object(), doc.base_uri)
+    def testCurieJSONHasCorrectType(self):
+        self.assertEquals(type(self.doc.as_object()['_links']['curies']), list)
+
+    def testSetCurie(self):
+        new_doc = dougrain.Document(self.doc.as_object(), self.doc.base_uri)
         self.assertEquals("http://localhost/rels/foo",
                           new_doc.expand_curie("rel:foo"))
-        self.assertEquals(type(doc.as_object()['_links']['curies']), list)
 
     def testReplaceCurie(self):
-        doc = make_doc("http://localhost/3")
-        doc.set_curie('rel', "http://localhost/rels/{rel}")
-        doc.set_curie('rel', "http://localhost/RELS/{rel}.html")
+        self.doc.set_curie('rel', "http://localhost/RELS/{rel}.html")
 
-        new_doc = dougrain.Document(doc.as_object(), doc.base_uri)
+        new_doc = dougrain.Document(self.doc.as_object(), self.doc.base_uri)
         self.assertEquals("http://localhost/RELS/foo.html",
                           new_doc.expand_curie("rel:foo"))
 
     def testDropCurie(self):
-        doc = make_doc("http://localhost/3")
-        doc.set_curie('rel', "http://localhost/rels/{rel}")
-        doc.set_curie('tm', "http://www.touchmachine.com/{rel}.html")
-        doc.drop_curie('rel')
+        self.doc.set_curie('tm', "http://www.touchmachine.com/{rel}.html")
+        self.doc.drop_curie('rel')
 
-        new_doc = dougrain.Document(doc.as_object(), doc.base_uri)
-        self.assertEquals("rel:foo", doc.expand_curie("rel:foo"))
+        new_doc = dougrain.Document(self.doc.as_object(), self.doc.base_uri)
+        self.assertEquals("rel:foo", self.doc.expand_curie("rel:foo"))
         self.assertEquals("http://www.touchmachine.com/index.html",
                           new_doc.expand_curie("tm:index"))
+
+class CurieMutationTestDraft3(CurieMutationTest):
+    def setUp(self):
+        self.doc = dougrain.Document({
+            '_links': {
+                'curie': {
+                    'href': "http://localhost/tmp/{rel}",
+                    'name': "tmp",
+                    'templated': True
+                }
+            }
+        }, "http://localhost/3")
+        self.doc.set_curie('rel', "http://localhost/rels/{rel}")
+        self.doc.drop_curie('tmp')
+        self.doc.add_link('self', "http://localhost/3")
+
+    def testCurieJSONHasCorrectType(self):
+        self.assertEquals(type(self.doc.as_object()['_links']['curie']), dict)
+
+    def tearDown(self):
+        curie_json = self.doc.as_object()['_links']['curie']
+        if isinstance(curie_json, dict):
+            return
+
+        if not isinstance(curie_json, list):
+            self.fail("'curie' is not a dict or a list")
+
+        if len(curie_json) < 2:
+            self.fail("'curie' is a list but has fewer than 2 items")
+
+        
 
 
 class CurieHidingTests(unittest.TestCase):
@@ -1055,6 +1089,27 @@ class LinkCanonicalizationTests(unittest.TestCase):
         self.assertEquals(set(["/apps/1", "/apps/2", "/apps/3"]),
                           set(link.href for link in self.doc.links["role:app"]))
 
+    def testMergesLinkswhenLoadingDraft3(self):
+        self.doc = dougrain.Document.from_object(
+            {
+                "_links": {
+                    "curie": {
+                        "href": "/roles/{rel}",
+                        "name": "role",
+                        "templated": True
+                    },
+                    "self": {"href": "/1"},
+                    "role:app": {"href": "/apps/1"},
+                    "/roles/app": {"href": "/apps/2"},
+                    "http://localhost/roles/app": {"href": "/apps/3"},
+                }
+            },
+            base_uri="http://localhost/1")
+        self.doc.set_curie("role", "/roles/{rel}")
+        
+        self.assertEquals(set(["/apps/1", "/apps/2", "/apps/3"]),
+                          set(link.href for link in self.doc.links["role:app"]))
+
 
 class EmbeddedCanonicalizationTests(unittest.TestCase):
     def setUp(self):
@@ -1121,6 +1176,74 @@ class EdgeCasesTests(unittest.TestCase):
 
         self.assertFalse('_embedded' in doc.properties)
         self.assertEquals("bar", doc.embedded['child'].properties['foo'])
+
+
+class ExplicitDraftTests(unittest.TestCase):
+    def testDraft3DocumentHasOldCurieBehaviour(self):
+        doc = dougrain.Document.empty("http://localhost",
+                                      draft=dougrain.Draft.DRAFT_3)
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_3)
+        doc.add_link('self', "/1")
+        doc.set_curie('rel', "/rels/{rel}")
+
+        links = doc.as_object()['_links']
+        self.assertTrue('curie' in links)
+        self.assertFalse('curies' in links)
+        curie = links['curie']
+        self.assertTrue(isinstance(curie, dict))
+        doc.set_curie('foo', "/foos/{rel}")
+        curie = links['curie']
+        self.assertTrue(isinstance(curie, list))
+
+    def testDraft4DocumentHasNewCurieBehaviour(self):
+        doc = dougrain.Document.empty("http://localhost",
+                                      draft=dougrain.Draft.DRAFT_4)
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_4)
+        doc.add_link('self', "/1")
+        doc.set_curie('rel', "/rels/{rel}")
+
+        links = doc.as_object()['_links']
+        self.assertFalse('curie' in links)
+        self.assertTrue('curies' in links)
+        curie = links['curies']
+        self.assertTrue(isinstance(curie, list))
+        doc.set_curie('foo', "/foos/{rel}")
+        curie = links['curies']
+        self.assertTrue(isinstance(curie, list))
+
+
+class DraftDetectionTests(unittest.TestCase):
+    def testDocumentsWithCurieAreDraft3(self):
+        doc = dougrain.Document.from_object(
+            {'_links': {'curie': {}}},
+            "http://localhost/")
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_3)
+
+    def testDocumentsWithCuriesAreDraft4(self):
+        doc = dougrain.Document.from_object(
+            {'_links': {'curies': []}},
+            "http://localhost/")
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_4)
+
+    def testLatestDraftIsDraft4(self):
+        doc = dougrain.Document.from_object({}, "http://localhost/",
+                                            draft=dougrain.Draft.LATEST)
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_4)
+
+    def testExplicitDraftOverridesAutodetection(self):
+        doc = dougrain.Document.from_object(
+            {'_links': {'curie': {}}},
+            "http://localhost/",
+            draft=dougrain.Draft.DRAFT_4
+        )
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_4)
+
+        doc = dougrain.Document.from_object(
+            {'_links': {'curies': []}},
+            "http://localhost/",
+            draft=dougrain.Draft.DRAFT_3
+        )
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_3)
 
 
 if __name__ == '__main__':
