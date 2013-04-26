@@ -203,22 +203,30 @@ def mutator(fn):
 
 
 class Draft(object):
-    DRAFT_3 = 'Draft.DRAFT_3'
-    DRAFT_4 = 'Draft.DRAFT_4'
+    class Draft3(object):
+        def detect(self, obj):
+            return self
+
+    class Draft4(object):
+        def detect(self, obj):
+            return self
+
+    class DraftAuto(object):
+        def detect(self, obj):
+            links = obj.get('_links', {})
+
+            if 'curies' in links:
+                return Draft.DRAFT_4
+
+            if 'curie' in links:
+                return Draft.DRAFT_3
+
+            return Draft.DRAFT_4
+
+    DRAFT_3 = Draft3()
+    DRAFT_4 = Draft4()
     LATEST = DRAFT_4
-    AUTO = 'Draft.AUTO'
-
-    @classmethod
-    def detect(cls, obj):
-        links = obj.get('_links', {})
-
-        if 'curies' in links:
-            return cls.DRAFT_4
-
-        if 'curie' in links:
-            return cls.DRAFT_3
-
-        return cls.DRAFT_4
+    AUTO = DraftAuto()
 
 
 class Document(object):
@@ -528,8 +536,7 @@ class Document(object):
         if isinstance(o, list):
             return map(lambda x: cls.from_object(x, base_uri), o)
 
-        if draft == Draft.AUTO:
-            draft = Draft.detect(o)
+        draft = draft.detect(o)
 
         return cls(o, base_uri, parent_curies, draft=draft)
 
