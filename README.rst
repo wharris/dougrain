@@ -12,6 +12,10 @@ simplejson or the json module from the standard library.
 Status
 ------
 
+.. image:: https://travis-ci.org/wharris/dougrain.png?branch=master
+   :alt: build status
+   :target: https://travis-ci.org/wharris/dougrain
+
 This is a pre-release version. The API may have have breaking changes
 in minor version releases until version 1.0.
 
