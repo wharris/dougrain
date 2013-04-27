@@ -957,36 +957,20 @@ class CurieMutationTest(unittest.TestCase):
         self.assertEquals("http://www.touchmachine.com/index.html",
                           new_doc.expand_curie("tm:index"))
 
+    def testDropSingleCurie(self):
+        self.doc.drop_curie('rel')
+        self.assertEquals("rel:foo", self.doc.expand_curie("rel:foo"))
+
+
 class CurieMutationTestDraft3(CurieMutationTest):
     def setUp(self):
-        self.doc = dougrain.Document({
-            '_links': {
-                'curie': {
-                    'href': "http://localhost/tmp/{rel}",
-                    'name': "tmp",
-                    'templated': True
-                }
-            }
-        }, "http://localhost/3")
+        self.doc = dougrain.Document.empty("http://localhost/3",
+                                           draft=dougrain.Draft.DRAFT_3)
         self.doc.set_curie('rel', "http://localhost/rels/{rel}")
-        self.doc.drop_curie('tmp')
         self.doc.add_link('self', "http://localhost/3")
 
     def testCurieJSONHasCorrectType(self):
         self.assertEquals(type(self.doc.as_object()['_links']['curie']), dict)
-
-    def tearDown(self):
-        curie_json = self.doc.as_object()['_links']['curie']
-        if isinstance(curie_json, dict):
-            return
-
-        if not isinstance(curie_json, list):
-            self.fail("'curie' is not a dict or a list")
-
-        if len(curie_json) < 2:
-            self.fail("'curie' is a list but has fewer than 2 items")
-
-        
 
 
 class CurieHidingTests(unittest.TestCase):
@@ -1232,7 +1216,9 @@ class DraftDetectionTests(unittest.TestCase):
 
     def testExplicitDraftOverridesAutodetection(self):
         doc = dougrain.Document.from_object(
-            {'_links': {'curie': {}}},
+            {'_links': {'curie': {"href": "/roles/{rel}",
+                                  "name": "role",
+                                  "templated": True}}},
             "http://localhost/",
             draft=dougrain.Draft.DRAFT_4
         )

@@ -204,22 +204,33 @@ def mutator(fn):
 
 class Draft(object):
     class Draft3(object):
+        curies_rel = 'curie'
+
         def detect(self, obj):
             return self
 
+        def set_curie(self, doc, name, href):
+            doc.add_link(self.curies_rel, href, name=name, templated=True)
+
     class Draft4(object):
+        curies_rel = 'curies'
+
         def detect(self, obj):
             return self
+
+        def set_curie(self, doc, name, href):
+            # CURIE links should always be in an array, even if there is only
+            # one.
+            doc.o.setdefault('_links', {}).setdefault(self.curies_rel, [])
+            doc.add_link(self.curies_rel, href, name=name, templated=True)
 
     class DraftAuto(object):
         def detect(self, obj):
             links = obj.get('_links', {})
 
-            if 'curies' in links:
-                return Draft.DRAFT_4
-
-            if 'curie' in links:
-                return Draft.DRAFT_3
+            for draft in [Draft.DRAFT_4, Draft.DRAFT_3]:
+                if draft.curies_rel in links:
+                    return draft
 
             return Draft.DRAFT_4
 
@@ -259,7 +270,7 @@ class Document(object):
         self.o = o
         self.base_uri = base_uri
         self.parent_curies = parent_curies
-        self.draft = draft
+        self.draft = draft.detect(o)
         self.prepare_cache()
 
     RESERVED_ATTRIBUTE_NAMES = ('_links', '_embedded')
@@ -278,12 +289,9 @@ class Document(object):
             links = {}
 
             links_json = self.o.get("_links", {})
-            curies_rel = self.OLD_CURIES_REL
-            if self.CURIES_REL in links_json:
-                curies_rel = self.CURIES_REL
 
             for key, value in links_json.iteritems():
-                if key == curies_rel:
+                if key == self.draft.curies_rel:
                     continue
                 links[key] = link.Link.from_object(value, self.base_uri)
 
@@ -534,11 +542,13 @@ class Document(object):
         """
 
         if isinstance(o, list):
-            return map(lambda x: cls.from_object(x, base_uri), o)
+            return map(lambda x: cls.from_object(x,
+                                                 base_uri,
+                                                 parent_curies,
+                                                 draft),
+                       o)
 
-        draft = draft.detect(o)
-
-        return cls(o, base_uri, parent_curies, draft=draft)
+        return cls(o, base_uri, parent_curies, draft)
 
     @classmethod
     def empty(cls, base_uri=None, draft=Draft.AUTO):
@@ -666,13 +676,7 @@ class Document(object):
 
         """
 
-        if self.draft == Draft.DRAFT_3:
-            self.add_link(self.OLD_CURIES_REL, href, name=name, templated=True)
-        else:
-            # CURIE links should always be in an array, even if there is only
-            # one.
-            self.o.setdefault('_links', {}).setdefault(self.CURIES_REL, [])
-            self.add_link(self.CURIES_REL, href, name=name, templated=True)
+        self.draft.set_curie(self, name, href)
 
     @mutator
     def drop_curie(self, name):
@@ -681,7 +685,10 @@ class Document(object):
         The CURIE link with the given name is removed from the document.
 
         """
-        curies = self.o['_links'][self.CURIES_REL]
+        curies = self.o['_links'][self.draft.curies_rel]
+        if isinstance(curies, dict) and curies['name'] == name:
+            del self.o['_links'][self.draft.curies_rel]
+            return
         
         for i, curie in enumerate(curies):
             if curie['name'] == name:
