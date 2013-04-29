@@ -202,6 +202,9 @@ def mutator(fn):
     return deco
 
 
+LINKS_KEY = '_links'
+EMBEDDED_KEY = '_embedded'
+
 class Draft(object):
     class Draft3(object):
         curies_rel = 'curie'
@@ -221,12 +224,12 @@ class Draft(object):
         def set_curie(self, doc, name, href):
             # CURIE links should always be in an array, even if there is only
             # one.
-            doc.o.setdefault('_links', {}).setdefault(self.curies_rel, [])
+            doc.o.setdefault(LINKS_KEY, {}).setdefault(self.curies_rel, [])
             doc.add_link(self.curies_rel, href, name=name, templated=True)
 
     class DraftAuto(object):
         def detect(self, obj):
-            links = obj.get('_links', {})
+            links = obj.get(LINKS_KEY, {})
 
             for draft in [Draft.DRAFT_4, Draft.DRAFT_3]:
                 if draft.curies_rel in links:
@@ -238,7 +241,6 @@ class Draft(object):
     DRAFT_4 = Draft4()
     LATEST = DRAFT_4
     AUTO = DraftAuto()
-
 
 class Document(object):
     """Represents the document for a HAL resource.
@@ -273,7 +275,7 @@ class Document(object):
         self.draft = draft.detect(o)
         self.prepare_cache()
 
-    RESERVED_ATTRIBUTE_NAMES = ('_links', '_embedded')
+    RESERVED_ATTRIBUTE_NAMES = (LINKS_KEY, EMBEDDED_KEY)
 
     def prepare_cache(self):
         def properties_cache():
@@ -286,7 +288,7 @@ class Document(object):
         def links_cache():
             links = {}
 
-            links_json = self.o.get("_links", {})
+            links_json = self.o.get(LINKS_KEY, {})
 
             for key, value in links_json.iteritems():
                 if key == self.draft.curies_rel:
@@ -318,7 +320,7 @@ class Document(object):
 
         def embedded_cache():
             embedded = {}
-            for key, value in self.o.get("_embedded", {}).iteritems():
+            for key, value in self.o.get(EMBEDDED_KEY, {}).iteritems():
                 embedded[key] = self.from_object(value,
                                                  self.base_uri,
                                                  self.curies)
@@ -444,7 +446,7 @@ class Document(object):
         else:
             link = self.link(target, **kwargs)
 
-        links = self.o.setdefault('_links', {})
+        links = self.o.setdefault(LINKS_KEY, {})
         
         new_link = link.as_object()
         collected_links = CanonicalRels(links, self.curies, self.base_uri)
@@ -484,11 +486,12 @@ class Document(object):
                     single argument is in the set of ``href``s to be deleted.
 
         """
-        if not '_links' in self.o:
+        if not LINKS_KEY in self.o:
             return
 
+        links = self.o[LINKS_KEY]
         if rel is None:
-            for rel in self.o['_links'].keys():
+            for rel in links.keys():
                 self.delete_link(rel, href)
             return
 
@@ -497,7 +500,6 @@ class Document(object):
         else:
             href_filter = lambda x: x == href
 
-        links = self.o['_links']
         links_for_rel = links.setdefault(rel, [])
         if isinstance(links_for_rel, dict):
             links_for_rel = [links_for_rel]
@@ -511,12 +513,12 @@ class Document(object):
             if len(new_links_for_rel) == 1:
                 new_links_for_rel = new_links_for_rel[0]
 
-            self.o['_links'][rel] = new_links_for_rel
+            links[rel] = new_links_for_rel
         else:
-            del self.o['_links'][rel]
+            del links[rel]
 
-        if not self.o['_links']:
-            del self.o['_links']
+        if not self.o[LINKS_KEY]:
+            del self.o[LINKS_KEY]
 
     @classmethod
     def from_object(cls, o, base_uri=None, parent_curies=None,
@@ -579,7 +581,7 @@ class Document(object):
         documents.
 
         """
-        embedded = self.o.setdefault('_embedded', {})
+        embedded = self.o.setdefault(EMBEDDED_KEY, {})
         collected_embedded = CanonicalRels(embedded, self.curies, self.base_uri)
 
         if rel not in collected_embedded:
@@ -622,15 +624,15 @@ class Document(object):
                     to be removed.
 
         """
-        if '_embedded' not in self.o:
+        if EMBEDDED_KEY not in self.o:
             return
 
         if rel is None:
-            for rel in self.o['_embedded'].keys():
+            for rel in self.o[EMBEDDED_KEY].keys():
                 self.delete_embedded(rel, href)
             return
 
-        if rel not in self.o['_embedded']:
+        if rel not in self.o[EMBEDDED_KEY]:
             return
 
         if callable(href):
@@ -638,13 +640,13 @@ class Document(object):
         else:
             url_filter = lambda x: x == href
 
-        rel_embeds = self.o['_embedded'][rel]
+        rel_embeds = self.o[EMBEDDED_KEY][rel]
 
         if isinstance(rel_embeds, dict):
-            del self.o['_embedded'][rel]
+            del self.o[EMBEDDED_KEY][rel]
 
-            if not self.o['_embedded']:
-                del self.o['_embedded']
+            if not self.o[EMBEDDED_KEY]:
+                del self.o[EMBEDDED_KEY]
             return
 
         new_rel_embeds = []
@@ -654,14 +656,14 @@ class Document(object):
                 new_rel_embeds.append(embedded)
 
         if not new_rel_embeds:
-            del self.o['_embedded'][rel]
+            del self.o[EMBEDDED_KEY][rel]
         elif len(new_rel_embeds) == 1:
-            self.o['_embedded'][rel] = new_rel_embeds[0]
+            self.o[EMBEDDED_KEY][rel] = new_rel_embeds[0]
         else:
-            self.o['_embedded'][rel] = new_rel_embeds
+            self.o[EMBEDDED_KEY][rel] = new_rel_embeds
 
-        if not self.o['_embedded']:
-            del self.o['_embedded']
+        if not self.o[EMBEDDED_KEY]:
+            del self.o[EMBEDDED_KEY]
 
     def set_curie(self, name, href):
         """Sets a CURIE.
@@ -680,9 +682,9 @@ class Document(object):
         The CURIE link with the given name is removed from the document.
 
         """
-        curies = self.o['_links'][self.draft.curies_rel]
+        curies = self.o[LINKS_KEY][self.draft.curies_rel]
         if isinstance(curies, dict) and curies['name'] == name:
-            del self.o['_links'][self.draft.curies_rel]
+            del self.o[LINKS_KEY][self.draft.curies_rel]
             return
         
         for i, curie in enumerate(curies):
