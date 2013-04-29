@@ -211,6 +211,11 @@ class Draft(object):
     class Draft3(object):
         """Behaviour that is compatibile with draft 3 of the HAL spec.
 
+        CURIEs are stored in a link with the relation type 'curie'. If there are
+        multiple CURIEs, the document's JSON representation has a JSON array in
+        ``_links.curie``, but if there is only one CURIE, ``_links.curie`` is a
+        JSON object.
+
         See http://tools.ietf.org/html/draft-kelly-json-hal-03.
         """
 
@@ -224,6 +229,10 @@ class Draft(object):
 
     class Draft4(object):
         """Behaviour that is compatibile with draft 4 of the HAL spec.
+
+        CURIEs are stored in a link with the relation type 'curies'. If there
+        are one or more CURIEs, the document's JSON representation has a JSON
+        array in ``_links.curies``.
 
         See http://tools.ietf.org/html/draft-kelly-json-hal-04.
         """
@@ -240,7 +249,13 @@ class Draft(object):
             doc.add_link(self.curies_rel, href, name=name, templated=True)
 
     class DraftAuto(object):
-        """Behaviour for documents that automatically detect draft version."""
+        """Behaviour for documents that automatically detect draft version.
+        
+        When created with an existing JSON object, the document guesses the
+        draft version based on the presence of a link with a relation type of
+        'curie' or 'curies'.
+        """
+
         def detect(self, obj):
             links = obj.get(LINKS_KEY, {})
 
@@ -575,6 +590,7 @@ class Document(object):
                                relative URLs in the document.
         - ``draft``: a ``Draft`` instance that selects the version of the spec
                      to which the document should conform. Defaults to
+                     ``Draft.AUTO``.
         """
         return cls.from_object({}, base_uri=base_uri, draft=draft)
 
