@@ -52,7 +52,8 @@ class TestParseAdditionalAttributes(unittest.TestCase):
                 'title': "Bar",
                 'type': "application/hal+json",
                 'profile': "/profiles/foo",
-                'hreflang': "en"
+                'hreflang': "en",
+                'deprecation': "/deprecation/foo"
             },
             "http://localhost/"
         )
@@ -71,6 +72,9 @@ class TestParseAdditionalAttributes(unittest.TestCase):
 
     def testLoadsHreflang(self):
         self.assertEquals("en", self.link.hreflang)
+
+    def testLoadsDeprecation(self):
+        self.assertEquals("/deprecation/foo", self.link.deprecation)
 
 
 class TestExpandTemplatedLink(unittest.TestCase):

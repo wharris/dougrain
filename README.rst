@@ -1,13 +1,10 @@
 Dougrain
 ========
 
-Dougrain is a Python library to help you work with the JSON variant of
-the `Hypertext Application
-Language <http://stateless.co/hal_specification.html>`_ as defined in
-the `JSON Hypermedia API Language Internet
-Draft 3 <http://tools.ietf.org/html/draft-kelly-json-hal-03>`_. It uses
-Python objects to represent the JSON document, so you can use it with
-simplejson or the json module from the standard library.
+Dougrain is a Python library to help you work with the JSON variant of the
+`Hypertext Application Language <http://stateless.co/hal_specification.html>`_.
+It uses Python objects to represent the JSON document, so you can use it with
+whichever JSON library you prefer.
 
 Status
 ------
@@ -18,6 +15,17 @@ Status
 
 This is a pre-release version. The API may have have breaking changes
 in minor version releases until version 1.0.
+
+Compatibility
+-------------
+
+This version is conforms to `JSON Hypermedia API Language Internet Draft 4
+<http://tools.ietf.org/html/draft-kelly-json-hal-04>`_, but can also parse and
+output JSON from
+`Draft 3 <http://tools.ietf.org/html/draft-kelly-json-hal-03>`_.
+The draft version can be explicitly selected when the document is constructed,
+but the default behavior is for documents to automatically detect which draft
+to use.
 
 Installation
 ------------
