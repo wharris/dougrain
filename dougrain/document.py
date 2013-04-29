@@ -274,8 +274,6 @@ class Document(object):
         self.prepare_cache()
 
     RESERVED_ATTRIBUTE_NAMES = ('_links', '_embedded')
-    CURIES_REL = 'curies'
-    OLD_CURIES_REL = 'curie'
 
     def prepare_cache(self):
         def properties_cache():
@@ -303,10 +301,7 @@ class Document(object):
                 result.update(self.parent_curies)
 
             links_json = self.o.get('_links', {})
-            curies_json = links_json.get(self.CURIES_REL)
-
-            if not curies_json:
-                curies_json = links_json.get(self.OLD_CURIES_REL)
+            curies_json = links_json.get(self.draft.curies_rel)
 
             if not curies_json:
                 return result
