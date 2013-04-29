@@ -1209,6 +1209,10 @@ class DraftDetectionTests(unittest.TestCase):
             "http://localhost/")
         self.assertEquals(doc.draft, dougrain.Draft.DRAFT_4)
 
+    def testDocumentsWithNoCurieKeyAreLatest(self):
+        doc = dougrain.Document.empty("http://localhost/")
+        self.assertEquals(doc.draft, dougrain.Draft.LATEST)
+
     def testLatestDraftIsDraft4(self):
         doc = dougrain.Document.from_object({}, "http://localhost/",
                                             draft=dougrain.Draft.LATEST)
