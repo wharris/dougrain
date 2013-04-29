@@ -206,7 +206,14 @@ LINKS_KEY = '_links'
 EMBEDDED_KEY = '_embedded'
 
 class Draft(object):
+    """Draft-specific behaviours."""
+
     class Draft3(object):
+        """Behaviour that is compatibile with draft 3 of the HAL spec.
+
+        See http://tools.ietf.org/html/draft-kelly-json-hal-03.
+        """
+
         curies_rel = 'curie'
 
         def detect(self, obj):
@@ -216,6 +223,11 @@ class Draft(object):
             doc.add_link(self.curies_rel, href, name=name, templated=True)
 
     class Draft4(object):
+        """Behaviour that is compatibile with draft 4 of the HAL spec.
+
+        See http://tools.ietf.org/html/draft-kelly-json-hal-04.
+        """
+
         curies_rel = 'curies'
 
         def detect(self, obj):
@@ -228,6 +240,7 @@ class Draft(object):
             doc.add_link(self.curies_rel, href, name=name, templated=True)
 
     class DraftAuto(object):
+        """Behaviour for documents that automatically detect draft version."""
         def detect(self, obj):
             links = obj.get(LINKS_KEY, {})
 
@@ -266,6 +279,8 @@ class Document(object):
                     instance.
     - ``rels``: a ``Relationships`` instance holding a merged view of the
                 relationships from the document.
+    - ``draft``: a ``Draft`` instance that selects the version of the spec to
+                 which the document should conform. Defaults to ``Draft.AUTO``.
 
     """
     def __init__(self, o, base_uri, parent_curies=None, draft=Draft.AUTO):
@@ -535,6 +550,9 @@ class Document(object):
                              CURIEs of the parent document in which the new
                              document is to be embedded. Calling code should not
                              normally provide this argument.
+        - ``draft``: a ``Draft`` instance that selects the version of the spec
+                     to which the document should conform. Defaults to
+                     ``Draft.AUTO``.
 
         """
 
@@ -555,6 +573,8 @@ class Document(object):
 
         - ``base_uri``: optional URL used as the basis when expanding
                                relative URLs in the document.
+        - ``draft``: a ``Draft`` instance that selects the version of the spec
+                     to which the document should conform. Defaults to
         """
         return cls.from_object({}, base_uri=base_uri, draft=draft)
 
