@@ -1195,6 +1195,22 @@ class ExplicitDraftTests(unittest.TestCase):
         curie = links['curies']
         self.assertTrue(isinstance(curie, list))
 
+    def testDraft5DocumentHasNewCurieBehaviour(self):
+        doc = dougrain.Document.empty("http://localhost",
+                                      draft=dougrain.Draft.DRAFT_5)
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_5)
+        doc.add_link('self', "/1")
+        doc.set_curie('rel', "/rels/{rel}")
+
+        links = doc.as_object()['_links']
+        self.assertFalse('curie' in links)
+        self.assertTrue('curies' in links)
+        curie = links['curies']
+        self.assertTrue(isinstance(curie, list))
+        doc.set_curie('foo', "/foos/{rel}")
+        curie = links['curies']
+        self.assertTrue(isinstance(curie, list))
+
 
 class DraftDetectionTests(unittest.TestCase):
     def testDocumentsWithCurieAreDraft3(self):
@@ -1203,26 +1219,44 @@ class DraftDetectionTests(unittest.TestCase):
             "http://localhost/")
         self.assertEquals(doc.draft, dougrain.Draft.DRAFT_3)
 
-    def testDocumentsWithCuriesAreDraft4(self):
+    def testDocumentsWithCuriesAreDraft5(self):
         doc = dougrain.Document.from_object(
             {'_links': {'curies': []}},
             "http://localhost/")
-        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_4)
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_5)
 
     def testDocumentsWithNoCurieKeyAreLatest(self):
         doc = dougrain.Document.empty("http://localhost/")
         self.assertEquals(doc.draft, dougrain.Draft.LATEST)
 
-    def testLatestDraftIsDraft4(self):
+    def testLatestDraftIsDraft5(self):
         doc = dougrain.Document.from_object({}, "http://localhost/",
                                             draft=dougrain.Draft.LATEST)
-        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_4)
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_5)
 
     def testExplicitDraftOverridesAutodetection(self):
         doc = dougrain.Document.from_object(
             {'_links': {'curie': {"href": "/roles/{rel}",
                                   "name": "role",
                                   "templated": True}}},
+            "http://localhost/",
+            draft=dougrain.Draft.DRAFT_5
+        )
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_5)
+
+        doc = dougrain.Document.from_object(
+            {'_links': {'curie': {"href": "/roles/{rel}",
+                                  "name": "role",
+                                  "templated": True}}},
+            "http://localhost/",
+            draft=dougrain.Draft.DRAFT_4
+        )
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_4)
+
+        doc = dougrain.Document.from_object(
+            {'_links': {'curies': [{"href": "/roles/{rel}",
+                                    "name": "role",
+                                    "templated": True}]}},
             "http://localhost/",
             draft=dougrain.Draft.DRAFT_4
         )

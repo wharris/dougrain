@@ -259,15 +259,16 @@ class Draft(object):
         def detect(self, obj):
             links = obj.get(LINKS_KEY, {})
 
-            for draft in [Draft.DRAFT_4, Draft.DRAFT_3]:
+            for draft in [Draft.LATEST, Draft.DRAFT_3]:
                 if draft.curies_rel in links:
                     return draft
 
-            return Draft.DRAFT_4
+            return Draft.LATEST
 
     DRAFT_3 = Draft3()
     DRAFT_4 = Draft4()
-    LATEST = DRAFT_4
+    DRAFT_5 = Draft4()
+    LATEST = DRAFT_5
     AUTO = DraftAuto()
 
 class Document(object):
