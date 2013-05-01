@@ -227,7 +227,7 @@ class Draft(object):
         def set_curie(self, doc, name, href):
             doc.add_link(self.curies_rel, href, name=name, templated=True)
 
-    class Draft4(object):
+    class Draft4(Draft3):
         """Behaviour that is compatibile with draft 4 of the HAL spec.
 
         CURIEs are stored in a link with the relation type 'curies'. If there
@@ -239,14 +239,24 @@ class Draft(object):
 
         curies_rel = 'curies'
 
-        def detect(self, obj):
-            return self
-
         def set_curie(self, doc, name, href):
             # CURIE links should always be in an array, even if there is only
             # one.
             doc.o.setdefault(LINKS_KEY, {}).setdefault(self.curies_rel, [])
             doc.add_link(self.curies_rel, href, name=name, templated=True)
+
+    class Draft5(Draft4):
+        """Behaviour that is compatibile with draft 5 of the HAL spec.
+
+        CURIEs are stored in a link with the relation type 'curies'. If there
+        are one or more CURIEs, the document's JSON representation has a JSON
+        array in ``_links.curies``.
+
+        If a document with a 'self' link is embedded and there is no
+        corresponding link, a corresponding link is added.
+
+        See http://tools.ietf.org/html/draft-kelly-json-hal-05.
+        """
 
     class DraftAuto(object):
         """Behaviour for documents that automatically detect draft version.
@@ -267,7 +277,7 @@ class Draft(object):
 
     DRAFT_3 = Draft3()
     DRAFT_4 = Draft4()
-    DRAFT_5 = Draft4()
+    DRAFT_5 = Draft5()
     LATEST = DRAFT_5
     AUTO = DraftAuto()
 
@@ -623,15 +633,26 @@ class Document(object):
 
         if rel not in collected_embedded:
             embedded[rel] = other.as_object()
+        else:
+            original_rel = collected_embedded.original_key(rel)
+
+            current_embedded = embedded[original_rel]
+            if isinstance(current_embedded, list):
+                current_embedded.append(other.as_object())
+            else:
+                embedded[original_rel] = [current_embedded, other.as_object()]
+
+        if self.draft != Draft.DRAFT_5:
             return
 
-        original_rel = collected_embedded.original_key(rel)
+        url = other.url()
+        if not url:
+            return
 
-        current_embedded = embedded[original_rel]
-        if isinstance(current_embedded, list):
-            current_embedded.append(other.as_object())
-        else:
-            embedded[original_rel] = [current_embedded, other.as_object()]
+        if url in (link.url() for link in self.links.get(rel, [])):
+            return
+
+        self.add_link(rel, other)
 
     @mutator
     def delete_embedded(self, rel=None, href=lambda _: True):

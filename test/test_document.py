@@ -30,7 +30,6 @@ class ParseSimpleTestDraft4(ParseSimpleTestMixin, unittest.TestCase):
 class ParseSimpleTestDraft3(ParseSimpleTestMixin, unittest.TestCase):
     DRAFT = dougrain.Draft.DRAFT_3
 
-
 #
 
 class ParseLinksTestMixin(object):
@@ -974,12 +973,16 @@ class EmbedTestMixin(object):
 
     def testEmbedDocumentWithSelfLink(self):
         self.doc.embed('item', self.embedded_with_self)
-        self.assertEquals(self.EXPECTED_WITH_SELF_LINK, self.doc.as_object())
+        self.assertEquals(self.EXPECTED_WITH_SELF_LINK,
+                          self.doc.as_object())
 
 
 class EmbedTestDraft5(EmbedTestMixin, unittest.TestCase):
     DRAFT = dougrain.Draft.DRAFT_5
     EXPECTED_WITH_SELF_LINK = {
+        '_links': {
+            'item': {'href': "/test"}
+        },
         '_embedded': {
             'item': EmbedTestMixin.OBJECT_WITH_SELF
         }
@@ -1023,6 +1026,8 @@ class TestIteration(unittest.TestCase):
 #
 
 class DeleteEmbeddedTestsMixin(object):
+    EMBEDDED_KEY = dougrain.document.EMBEDDED_KEY
+
     def make_doc(self, href, *args, **kwargs):
         result = dougrain.Document.empty("http://localhost", *args,
                                          draft=self.DRAFT, **kwargs)
@@ -1039,7 +1044,8 @@ class DeleteEmbeddedTestsMixin(object):
 
         doc.delete_embedded("child")
 
-        self.assertEquals(target_doc.as_object(), doc.as_object())
+        self.assertEquals(target_doc.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
         self.assertFalse('child' in doc.embedded)
         self.assertTrue('root' in doc.embedded)
 
@@ -1055,7 +1061,8 @@ class DeleteEmbeddedTestsMixin(object):
 
         doc.delete_embedded("child")
 
-        self.assertEquals(target_doc.as_object(), doc.as_object())
+        self.assertEquals(target_doc.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
         self.assertFalse('child' in doc.embedded)
         self.assertTrue('root' in doc.embedded)
 
@@ -1069,7 +1076,8 @@ class DeleteEmbeddedTestsMixin(object):
         doc.delete_embedded('root')
         doc.delete_embedded('child')
 
-        self.assertEquals(target_doc.as_object(), doc.as_object())
+        self.assertEquals(target_doc.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
 
     def testDeleteIndividualEmbeds(self):
         doc = self.make_doc("http://localhost/2")
@@ -1093,16 +1101,20 @@ class DeleteEmbeddedTestsMixin(object):
         doc5 = self.make_doc("http://localhost/2")
 
         doc.delete_embedded("child", "http://localhost/2/1")
-        self.assertEquals(doc2.as_object(), doc.as_object())
+        self.assertEquals(doc2.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
 
         doc.delete_embedded("child", "http://localhost/2/3")
-        self.assertEquals(doc3.as_object(), doc.as_object())
+        self.assertEquals(doc3.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
         
         doc.delete_embedded("child", "http://localhost/2/2")
-        self.assertEquals(doc4.as_object(), doc.as_object())
+        self.assertEquals(doc4.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
 
         doc.delete_embedded("root", "http://localhost/")
-        self.assertEquals(doc5.as_object(), doc.as_object())
+        self.assertEquals(doc5.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
 
     def testDeleteEmbedsWithoutRel(self):
         doc = self.make_doc("http://localhost/3")
@@ -1115,7 +1127,8 @@ class DeleteEmbeddedTestsMixin(object):
 
         doc.delete_embedded(href="http://localhost/3/1")
 
-        self.assertEquals(target_doc.as_object(), doc.as_object())
+        self.assertEquals(target_doc.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
 
     def testDeleteAllEmbeds(self):
         doc = self.make_doc("http://localhost/3")
@@ -1127,7 +1140,8 @@ class DeleteEmbeddedTestsMixin(object):
 
         doc.delete_embedded()
 
-        self.assertEquals(target_doc.as_object(), doc.as_object())
+        self.assertEquals(target_doc.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
 
     def testDeleteEmbedWithMissingRel(self):
         doc = self.make_doc("http://localhost/3")
@@ -1153,15 +1167,27 @@ class DeleteEmbeddedTestsMixin(object):
 
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
+    def testAutomaticLink(self):
+        doc = self.make_doc("http://localhost/3")
+        doc.embed('child', self.make_doc("http://localhost/3/1"))
+        doc.delete_embedded('child')
+
+        self.assertAutomaticLink('child' in doc.links)
+
 
 class DeleteEmbeddedTestsDraft5(DeleteEmbeddedTestsMixin, unittest.TestCase):
     DRAFT = dougrain.Draft.DRAFT_5
+    assertAutomaticLink = unittest.TestCase.assertTrue
+
 
 class DeleteEmbeddedTestsDraft4(DeleteEmbeddedTestsMixin, unittest.TestCase):
     DRAFT = dougrain.Draft.DRAFT_4
+    assertAutomaticLink = unittest.TestCase.assertFalse
+
 
 class DeleteEmbeddedTestsDraft3(DeleteEmbeddedTestsMixin, unittest.TestCase):
     DRAFT = dougrain.Draft.DRAFT_3
+    assertAutomaticLink = unittest.TestCase.assertFalse
 
 #
 
