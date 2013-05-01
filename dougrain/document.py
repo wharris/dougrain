@@ -220,6 +220,7 @@ class Draft(object):
         """
 
         curies_rel = 'curie'
+        automatic_link = False
 
         def detect(self, obj):
             return self
@@ -257,6 +258,8 @@ class Draft(object):
 
         See http://tools.ietf.org/html/draft-kelly-json-hal-05.
         """
+
+        automatic_link = True
 
     class DraftAuto(object):
         """Behaviour for documents that automatically detect draft version.
@@ -642,7 +645,7 @@ class Document(object):
             else:
                 embedded[original_rel] = [current_embedded, other.as_object()]
 
-        if self.draft != Draft.DRAFT_5:
+        if not self.draft.automatic_link:
             return
 
         url = other.url()
