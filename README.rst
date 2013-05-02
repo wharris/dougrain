@@ -54,15 +54,6 @@ Testing
     $ pip install nose
     $ nosetests
 
-The script, ``autotest``, uses watchdog to run the tests automatically
-whenever the source changes, which can be useful for development:
-
-::
-
-    $ pip install argcomplete
-    $ pip install watchdog
-    $ ./autotest
-
 Example
 -------
 
