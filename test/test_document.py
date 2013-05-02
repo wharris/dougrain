@@ -1161,6 +1161,18 @@ class EdgeCasesTests(unittest.TestCase):
         self.assertFalse('_embedded' in doc.properties)
         self.assertEquals("bar", doc.embedded['child'].properties['foo'])
 
+    def testEmbedDocumentInItself(self):
+        doc = dougrain.Document.empty("http://localhost")
+        doc.add_link('self', "/1")
+        doc.set_curie('rel', "/rels/{rel}")
+        doc.set_property('name', "me")
+        doc.add_link('rel:other', "/other")
+        doc.add_link('next', "/2")
+
+        doc.embed('rel:me', doc)
+
+        self.assertFalse('rel:me' in doc.embedded)
+
 
 class ExplicitDraftTests(unittest.TestCase):
     def testDraft3DocumentHasOldCurieBehaviour(self):

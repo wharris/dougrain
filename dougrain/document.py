@@ -606,7 +606,8 @@ class Document(object):
           (http://www.iana.org/assignments/link-relations/link-relations.xml),
           a full URI, or a CURIE.
         - ``other``: a ``Document`` instance that will be embedded in this
-          document.
+          document. If ``other`` is identical to this document, this method
+          will silently fail.
 
         Calling code should use this method to add embedded resources instead
         of modifying ``embedded`` directly.
@@ -617,6 +618,10 @@ class Document(object):
         documents.
 
         """
+
+        if other == self:
+            return
+
         embedded = self.o.setdefault(EMBEDDED_KEY, {})
         collected_embedded = CanonicalRels(embedded, self.curies, self.base_uri)
 
