@@ -2,9 +2,9 @@ Dougrain
 ========
 
 Dougrain is a Python library to help you work with the JSON variant of the
-`Hypertext Application Language <http://stateless.co/hal_specification.html>`_.
-It uses Python objects to represent the JSON document, so you can use it with
-whichever JSON library you prefer.
+`Hypertext Application Language <http://stateless.co/hal_specification.html>`_
+(HAL). It uses Python objects to represent the JSON document, so you can use
+it with whichever JSON library you prefer.
 
 Status
 ------
@@ -13,11 +13,15 @@ Status
    :alt: build status
    :target: https://travis-ci.org/wharris/dougrain
 
-This is a pre-release version. The API may have have breaking changes
-in minor version releases until version 1.0.
+This is a pre-release version. It usually works pretty well, but the API may
+have have breaking changes in minor releases until version 1.0. The HAL
+specification is still being developed, so Dougrain is unlikely to have a
+stable API until HAL itself is stable.
 
 Compatibility
 -------------
+
+Drafts **3**, **4**, and **5**.
 
 This version conforms to `JSON Hypermedia API Language Internet Draft 5
 <http://tools.ietf.org/html/draft-kelly-json-hal-04>`_,
@@ -31,28 +35,38 @@ to use.
 Installation
 ------------
 
+You'll probably need to use sudo on the install commands, or run in a
+virtualenv.
+
+The easiest way to install the current release is to use pip:
+
+::
+
+    $ pip install dougrain
+
+You can install a local copy of the source in the usual way:
+
 ::
 
     $ cd dougrain
-    $ pip install uritemplate
+    $ pip install -r requirements.txt
     $ python setup.py install
 
 Testing
 -------
 
+The easiest way to run the tests is to use nose, so install nose if you don't
+already have it:
+
 ::
 
     $ pip install nose
-    $ nosetests
 
-The script, ``autotest``, uses watchdog to run the tests automatically
-whenever the source changes, which can be useful for development:
+Then run nose:
 
 ::
 
-    $ pip install argcomplete
-    $ pip install watchdog
-    $ ./autotest
+    $ nosetests
 
 Example
 -------
