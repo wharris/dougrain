@@ -2,9 +2,9 @@ Dougrain
 ========
 
 Dougrain is a Python library to help you work with the JSON variant of the
-`Hypertext Application Language <http://stateless.co/hal_specification.html>`_.
-It uses Python objects to represent the JSON document, so you can use it with
-whichever JSON library you prefer.
+`Hypertext Application Language <http://stateless.co/hal_specification.html>`_
+(HAL). It uses Python objects to represent the JSON document, so you can use
+it with whichever JSON library you prefer.
 
 Status
 ------
@@ -13,11 +13,15 @@ Status
    :alt: build status
    :target: https://travis-ci.org/wharris/dougrain
 
-This is a pre-release version. The API may have have breaking changes
-in minor version releases until version 1.0.
+This is a pre-release version. It usually works pretty well, but the API may
+have have breaking changes in minor releases until version 1.0. The HAL
+specification is still being developed, so Dougrain is unlikely to have a
+stable API until HAL itself is stable.
 
 Compatibility
 -------------
+
+Drafts **3** and **4**.
 
 This version is conforms to `JSON Hypermedia API Language Internet Draft 4
 <http://tools.ietf.org/html/draft-kelly-json-hal-04>`_, but can also parse and
@@ -30,13 +34,16 @@ to use.
 Installation
 ------------
 
-Via pip:
+You'll probably need to use sudo on the install commands, or run in a
+virtualenv.
+
+The easiest way to install the current release is to use pip:
 
 ::
 
     $ pip install dougrain
 
-From source:
+You can install a local copy of the source in the usual way:
 
 ::
 
@@ -44,14 +51,20 @@ From source:
     $ pip install -r requirements.txt
     $ python setup.py install
 
-You'll probably need to sudo or run in a virtualenv.
-
 Testing
 -------
+
+The easiest way to run the tests is to use nose, so install nose if you don't
+already have it:
 
 ::
 
     $ pip install nose
+
+Then run nose:
+
+::
+
     $ nosetests
 
 Example
