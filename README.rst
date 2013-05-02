@@ -30,11 +30,21 @@ to use.
 Installation
 ------------
 
+Via pip:
+
+::
+
+    $ pip install dougrain
+
+From source:
+
 ::
 
     $ cd dougrain
-    $ pip install uritemplate
+    $ pip install -r requirements.txt
     $ python setup.py install
+
+You'll probably need to sudo or run in a virtualenv.
 
 Testing
 -------
