@@ -5,9 +5,12 @@
 import unittest
 import dougrain
 
-class ParseSimpleTest(unittest.TestCase):
+#
+
+class ParseSimpleTestMixin(object):
     def setUp(self):
-        self.doc = dougrain.Document.from_object({"name": "David Bowman"})
+        self.doc = dougrain.Document.from_object({"name": "David Bowman"},
+                                                 draft=self.DRAFT)
 
     def testParseSimple(self):
         self.assertEquals(self.doc.properties['name'], "David Bowman")
@@ -16,7 +19,20 @@ class ParseSimpleTest(unittest.TestCase):
         self.assertEquals(self.doc.links, {})
 
 
-class ParseLinksTest(unittest.TestCase):
+class ParseSimpleTestDraft5(ParseSimpleTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_5
+
+
+class ParseSimpleTestDraft4(ParseSimpleTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_4
+
+
+class ParseSimpleTestDraft3(ParseSimpleTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_3
+
+#
+
+class ParseLinksTestMixin(object):
     OBJECT = {
         "_links": {
             "self": {"href": "dougrain"},
@@ -34,7 +50,9 @@ class ParseLinksTest(unittest.TestCase):
 
     def setUp(self):
         self.doc = dougrain.Document.from_object(
-            self.OBJECT, base_uri="http://localhost/wharris/dougrain")
+            self.OBJECT,
+            base_uri="http://localhost/wharris/dougrain",
+            draft=self.DRAFT)
 
     def testLoadsSingleLinkHref(self):
         self.assertEquals("http://localhost/wharris/esmre",
@@ -73,33 +91,25 @@ class ParseLinksTest(unittest.TestCase):
         self.assertFalse(hasattr(self.doc, '_links'))
 
 
-class ParseEmbeddedObjectsTest(unittest.TestCase):
-    OBJECT = {
-        "_embedded": {
-            "foo": {
-                "name": "Foo",
-                "size": 88888888
-            },
-            "bar": [
-                {
-                    "title": "Bar 1"
-                },
-                {
-                    "title": "Bar 2"
-                }
-            ],
-            "bundy": {
-                "_links": {
-                    "next": {"href": "/people/2"}
-                }
-            }
-        }
-    }
+class ParseLinksTestDraft5(ParseLinksTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_5
 
+
+class ParseLinksTestDraft4(ParseLinksTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_4
+
+
+class ParseLinksTestDraft3(ParseLinksTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_3
+
+#
+
+class ParseEmbeddedObjectsTestMixin(object):
     def setUp(self):
         self.doc = dougrain.Document.from_object(
             self.OBJECT,
-            base_uri="http://localhost/people/")
+            base_uri="http://localhost/people/",
+            draft=self.DRAFT)
 
     def testLoadsSingleEmbeddedObject(self):
         foo = self.doc.embedded["foo"]
@@ -121,56 +131,88 @@ class ParseEmbeddedObjectsTest(unittest.TestCase):
         self.assertFalse(hasattr(self.doc, '_embedded'))
 
 
-class CurieExpansionTest(unittest.TestCase):
+class ParseEmbeddedObjectsTestDraft5(ParseEmbeddedObjectsTestMixin,
+                                     unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_5
     OBJECT = {
-        '_links': {
-            'curies': [
+        "_links": {
+            "foo": {'href': "/foo"},
+            "bar": [{'href': "/bar/1"}, {'href': "/bar/2"}],
+            "bundy": {'href': "/bundy"}
+        },
+        "_embedded": {
+            "foo": {
+                "_links": {"self": {'href': "/foo"}},
+                "name": "Foo",
+                "size": 88888888
+            },
+            "bar": [
                 {
-                    'href': "http://localhost/roles/{rel}",
-                    'name': 'role',
-                    'templated': True
+                    "_links": {"self": {'href': "/bar/1"}},
+                    "title": "Bar 1"
                 },
                 {
-                    'href': "http://localhost/images/{rel}",
-                    'name': 'image',
-                    'templated': True
+                    "_links": {"self": {'href': "/bar/2"}},
+                    "title": "Bar 2"
                 }
             ],
-            'role:host': {'href': "/hosts/1"}
-        },
-        '_embedded': {
-            'role:sizing': {
-                '_links': {
-                    'curies': [
-                        {
-                            'href': "http://localhost/dimension/{rel}",
-                            'name': 'dim',
-                            'templated': True
-                        }
-                    ]
+            "bundy": {
+                "_links": {
+                    "self": {'href': "/bundy"},
+                    "next": {"href": "/people/2"}
                 }
-            },
-            'role:coloring': {
-                '_links': {
-                    'curies': [
-                        {
-                            'href':
-                            "http://localhost/imagefiles/{rel}",
-                            'name': 'image',
-                            'templated': True
-                        }
-                    ]
-                }
-            },
+            }
         }
     }
 
+
+class ParseEmbeddedObjectsTestDraft4(ParseEmbeddedObjectsTestMixin,
+                                     unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_4
+    OBJECT = {
+        "_embedded": {
+            "foo": {
+                "_links": {"self": {'href': "/foo"}},
+                "name": "Foo",
+                "size": 88888888
+            },
+            "bar": [
+                {
+                    "_links": {"self": {'href': "/bar/1"}},
+                    "title": "Bar 1"
+                },
+                {
+                    "_links": {"self": {'href': "/bar/2"}},
+                    "title": "Bar 2"
+                }
+            ],
+            "bundy": {
+                "_links": {
+                    "self": {'href': "/bundy"},
+                    "next": {"href": "/people/2"}
+                }
+            }
+        }
+    }
+
+
+class ParseEmbeddedObjectsTestDraft3(ParseEmbeddedObjectsTestMixin,
+                                     unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_5
+    OBJECT = ParseEmbeddedObjectsTestDraft4.OBJECT
+
+#
+
+class CurieExpansionTestMixin(object):
+
     def setUp(self):
-        self.doc = dougrain.Document.from_object(self.OBJECT)
+        self.doc = dougrain.Document.from_object(self.OBJECT,
+                                                 draft=self.DRAFT)
 
     def testExposesCurieCollection(self):
+        expanded = self.doc.expand_curie('role:category')
         self.assertEquals("http://localhost/roles/category",
-                          self.doc.expand_curie('role:category'))
+                          expanded)
 
     def testEmbeddedObjectHasParentCuries(self):
         sizing_doc = self.doc.embedded['role:sizing']
@@ -190,7 +232,108 @@ class CurieExpansionTest(unittest.TestCase):
         self.assertEquals("http://localhost/imagefiles/photo",
                           coloring_doc.expand_curie('image:photo'))
 
-class CurieExpansionTestDraft3(CurieExpansionTest):
+
+class CurieExpansionTestDraft5(CurieExpansionTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_5
+    OBJECT = {
+        '_links': {
+            'curies': [
+                {
+                    'href': "http://localhost/roles/{rel}",
+                    'name': 'role',
+                    'templated': True
+                },
+                {
+                    'href': "http://localhost/images/{rel}",
+                    'name': 'image',
+                    'templated': True
+                }
+            ],
+            'role:host': {'href': "/hosts/1"},
+            'role:sizing': {'href': "http://localhost/sizing/1"},
+            'role:coloring': {'href': "http://localhost/coloring/1"}
+        },
+        '_embedded': {
+            'role:sizing': {
+                '_links': {
+                    'self': {'href': "http://localhost/sizing/1"},
+                    'curies': [
+                        {
+                            'href': "http://localhost/dimension/{rel}",
+                            'name': 'dim',
+                            'templated': True
+                        }
+                    ]
+                }
+            },
+            'role:coloring': {
+                '_links': {
+                    'self': {'href': "http://localhost/coloring/1"},
+                    'curies': [
+                        {
+                            'href':
+                            "http://localhost/imagefiles/{rel}",
+                            'name': 'image',
+                            'templated': True
+                        }
+                    ]
+                }
+            },
+        }
+    }
+
+
+class CurieExpansionTestDraft4(CurieExpansionTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_4
+    OBJECT = {
+        '_links': {
+            'curies': [
+                {
+                    'href': "http://localhost/roles/{rel}",
+                    'name': 'role',
+                    'templated': True
+                },
+                {
+                    'href': "http://localhost/images/{rel}",
+                    'name': 'image',
+                    'templated': True
+                }
+            ],
+            'role:host': {'href': "/hosts/1"}
+        },
+        '_embedded': {
+            'role:sizing': {
+                '_links': {
+                    'self': {'href': "http://localhost/sizing/1"},
+                    'curies': [
+                        {
+                            'href': "http://localhost/dimension/{rel}",
+                            'name': 'dim',
+                            'templated': True
+                        }
+                    ]
+                }
+            },
+            'role:coloring': {
+                '_links': {
+                    'self': {'href': "http://localhost/coloring/1"},
+                    'curies': [
+                        {
+                            'href':
+                            "http://localhost/imagefiles/{rel}",
+                            'name': 'image',
+                            'templated': True
+                        }
+                    ]
+                }
+            },
+        }
+    }
+
+
+class CurieExpansionTestDraft3(CurieExpansionTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_3
+
     OBJECT = {
         '_links': {
             'curie': [
@@ -229,62 +372,12 @@ class CurieExpansionTestDraft3(CurieExpansionTest):
         }
     }
 
+#
 
-class RelsTest(unittest.TestCase):
-    OBJECT = {
-        '_links': {
-            'curies': [
-                {
-                    'href': "/roles/{rel}",
-                    'name': 'role',
-                    'templated': True
-                },
-                {
-                    'href': "http://localhost/images/{rel}",
-                    'name': 'image',
-                    'templated': True
-                }
-            ],
-            'role:host': {'href': "/hosts/1"},
-            'role:application': {'href': "/apps/1"},
-            'role:dept': [
-                {'href': "/departments/1"},
-                {'href': "/departments/2"}
-            ]
-        },
-        '_embedded': {
-            'role:consumer': {
-                '_links': {
-                    'self': {
-                        'href': '/clients/1'
-                    }
-                },
-                'name': "Client 1"
-            },
-            'role:application': {
-                '_links': {
-                    'self': { 'href': "/apps/2" }
-                }
-            },
-            'role:dept': [
-                {
-                    '_links': {
-                        'self': {
-                            'href': "http://localhost/departments/2"
-                        }
-                    },
-                },
-                {
-                    '_links': {
-                        'self': { 'href': "/departments/3" }
-                    }
-                }
-            ]
-        }
-    }
-    
+class RelsTestMixin(object):
     def setUp(self):
-        self.doc = dougrain.Document(self.OBJECT, "http://localhost")
+        self.doc = dougrain.Document(self.OBJECT, "http://localhost",
+                                     draft=self.DRAFT)
 
     def testHasHostLinkRel(self):
         host_role = self.doc.expand_curie('role:host')
@@ -324,7 +417,68 @@ class RelsTest(unittest.TestCase):
             urls)
 
 
-class RelsTestDraft3(RelsTest):
+class RelsTestDraft5(RelsTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_5
+    OBJECT = {
+        '_links': {
+            'curies': [
+                {
+                    'href': "/roles/{rel}",
+                    'name': 'role',
+                    'templated': True
+                },
+                {
+                    'href': "http://localhost/images/{rel}",
+                    'name': 'image',
+                    'templated': True
+                }
+            ],
+            'role:host': {'href': "/hosts/1"},
+            'role:application': {'href': "/apps/1"},
+            'role:dept': [
+                {'href': "/departments/1"},
+                {'href': "/departments/2"}
+            ]
+        },
+        '_embedded': {
+            'role:consumer': {
+                '_links': {
+                    'self': {
+                        'href': '/clients/1'
+                    }
+                },
+                'name': "Client 1"
+            },
+            'role:application': {
+                '_links': {
+                    'self': { 'href': "/apps/2" }
+                }
+            },
+            'role:dept': [
+                {
+                    '_links': {
+                        'self': {
+                            'href': "http://localhost/departments/2"
+                        }
+                    },
+                },
+                {
+                    '_links': {
+                        'self': { 'href': "/departments/3" }
+                    }
+                }
+            ]
+        }
+    }
+
+
+class RelsTestDraft4(RelsTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_4
+    OBJECT = RelsTestDraft5.OBJECT
+
+
+class RelsTestDraft3(RelsTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_3
     OBJECT = {
         '_links': {
             'curie': [
@@ -377,10 +531,12 @@ class RelsTestDraft3(RelsTest):
         }
     }
 
+#
 
-class SerializeTests(unittest.TestCase):
+class SerializeTestsMixin(object):
     def checkEqualObjects(self, obj):
-        doc = dougrain.Document.from_object(obj, "http://localhost")
+        doc = dougrain.Document.from_object(obj, "http://localhost",
+                                            draft=self.DRAFT)
         self.assertEquals(obj, doc.as_object())
 
     def testSimple(self):
@@ -393,19 +549,39 @@ class SerializeTests(unittest.TestCase):
                                 "vacuracy": 10.0})
 
     def testLinks(self):
-        self.checkEqualObjects(ParseLinksTest.OBJECT)
+        self.checkEqualObjects(ParseLinksTestMixin.OBJECT)
 
     def testEmbeddedObjects(self):
-        self.checkEqualObjects(ParseEmbeddedObjectsTest.OBJECT)
+        self.checkEqualObjects(self.EMBEDDED_CASE)
 
     def testRels(self):
-        self.checkEqualObjects(CurieExpansionTest.OBJECT)
-        self.checkEqualObjects(RelsTest.OBJECT)
+        self.checkEqualObjects(self.RELS_CASE)
 
-    def testRelsDraft3(self):
-        self.checkEqualObjects(CurieExpansionTestDraft3.OBJECT)
-        self.checkEqualObjects(RelsTestDraft3.OBJECT)
+    def testCuries(self):
+        self.checkEqualObjects(self.CURIES_CASE)
 
+
+class SerializeTestsDraft5(SerializeTestsMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_5
+    EMBEDDED_CASE = ParseEmbeddedObjectsTestDraft5.OBJECT
+    RELS_CASE = RelsTestDraft5.OBJECT
+    CURIES_CASE = CurieExpansionTestDraft5.OBJECT
+
+
+class SerializeTestsDraft4(SerializeTestsMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_4
+    EMBEDDED_CASE = ParseEmbeddedObjectsTestDraft4.OBJECT
+    RELS_CASE = RelsTestDraft4.OBJECT
+    CURIES_CASE = CurieExpansionTestDraft4.OBJECT
+
+
+class SerializeTestsDraft3(SerializeTestsMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_3
+    EMBEDDED_CASE = ParseEmbeddedObjectsTestDraft3.OBJECT
+    RELS_CASE = RelsTestDraft3.OBJECT
+    CURIES_CASE = CurieExpansionTestDraft3.OBJECT
+
+#
 
 class AttributeMutationTests(unittest.TestCase):
     def testSetAttributeAddsAttribute(self):
@@ -445,6 +621,7 @@ class AttributeMutationTests(unittest.TestCase):
 
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
+#
 
 class AddLinkStringTests(unittest.TestCase):
     def add_link(self, doc, rel, href, **kwargs):
@@ -543,11 +720,14 @@ class AddLinkStringTests(unittest.TestCase):
 
         self.assertEquals(target, doc.as_object())
 
+#
+
 class AddObjectLinkTests(AddLinkStringTests):
     def add_link(self, doc, rel, href, **kwargs):
         link = doc.link(href, **kwargs)
         doc.add_link(rel, link)
 
+#
 
 class AddDocumentLinkTests(AddLinkStringTests):
     def add_link(self, doc, rel, href, **kwargs):
@@ -556,6 +736,7 @@ class AddDocumentLinkTests(AddLinkStringTests):
         target.add_link('self', self_link)
         doc.add_link(rel, target)
 
+#
 
 class DeleteLinkTests(unittest.TestCase):
     def testDeleteOnlyLinkForRel(self):
@@ -605,7 +786,6 @@ class DeleteLinkTests(unittest.TestCase):
 
         self.assertEquals(target_doc.as_object(), doc.as_object())
         self.assertFalse('child' in doc.links)
-
 
     def testDeleteLastLink(self):
         initial = {
@@ -728,13 +908,26 @@ class DeleteLinkTests(unittest.TestCase):
 
         self.assertEquals(target, doc)
 
+#
 
-class EmbedTest(unittest.TestCase):
+class EmbedTestMixin(object):
+    OBJECT_WITH_SELF = {
+        "ham": "beans",
+        "_links": {"self": {"href": "/test"}}
+    }
+
     def setUp(self):
-        self.doc = dougrain.Document.empty("http://localhost/")
-        self.embedded1 = dougrain.Document.from_object({"foo": "bar"})
-        self.embedded2 = dougrain.Document.from_object({"spam": "eggs"})
-        self.embedded3 = dougrain.Document.from_object({"ham": "beans"})
+        self.doc = dougrain.Document.empty("http://localhost/",
+                                           draft=self.DRAFT)
+        self.embedded1 = dougrain.Document.from_object({"foo": "bar"},
+                                                       draft=self.DRAFT)
+        self.embedded2 = dougrain.Document.from_object({"spam": "eggs"},
+                                                       draft=self.DRAFT)
+        self.embedded3 = dougrain.Document.from_object({"ham": "beans"},
+                                                       draft=self.DRAFT)
+        self.embedded_with_self = dougrain.Document.from_object(
+            self.OBJECT_WITH_SELF,
+            draft=self.DRAFT)
 
     def testEmbed(self):
         expected = {
@@ -778,141 +971,188 @@ class EmbedTest(unittest.TestCase):
         self.assertEquals([self.embedded1, self.embedded2, self.embedded3],
                           self.doc.embedded['item'])
 
+    def testEmbedDocumentWithSelfLink(self):
+        self.doc.embed('item', self.embedded_with_self)
+        self.assertEquals(self.EXPECTED_WITH_SELF_LINK,
+                          self.doc.as_object())
+
+
+class EmbedTestDraft5(EmbedTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_5
+    EXPECTED_WITH_SELF_LINK = {
+        '_links': {
+            'item': {'href': "/test"}
+        },
+        '_embedded': {
+            'item': EmbedTestMixin.OBJECT_WITH_SELF
+        }
+    }
+
+
+class EmbedTestDraft4(EmbedTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_4
+    EXPECTED_WITH_SELF_LINK = {
+        '_embedded': {
+            'item': EmbedTestMixin.OBJECT_WITH_SELF
+        }
+    }
+
+
+class EmbedTestDraft3(EmbedTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_3
+    EXPECTED_WITH_SELF_LINK = {
+        '_embedded': {
+            'item': EmbedTestMixin.OBJECT_WITH_SELF
+        }
+    }
+
+#
 
 class TestIteration(unittest.TestCase):
     def testASingleDocumentCanBeIterated(self):
-        the_doc = dougrain.Document.empty("http://localhost/1")
-        the_doc.add_link('self', "http://localhost/1")
+        for draft in (dougrain.Draft.DRAFT_3,
+                      dougrain.Draft.DRAFT_4,
+                      dougrain.Draft.DRAFT_5):
+            the_doc = dougrain.Document.empty("http://localhost/1", draft=draft)
+            the_doc.add_link('self', "http://localhost/1")
 
-        count = 0
-        for a_doc in the_doc:
-            count += 1
-            self.assertEquals(the_doc, a_doc)
+            count = 0
+            for a_doc in the_doc:
+                count += 1
+                self.assertEquals(the_doc, a_doc)
 
-        self.assertEquals(1, count)
+            self.assertEquals(1, count)
 
+#
 
-def make_doc(href, *args, **kwargs):
-    result = dougrain.Document.empty("http://localhost", *args, **kwargs)
-    result.add_link('self', href)
-    return result
+class DeleteEmbeddedTestsMixin(object):
+    EMBEDDED_KEY = dougrain.document.EMBEDDED_KEY
 
+    def make_doc(self, href, *args, **kwargs):
+        result = dougrain.Document.empty("http://localhost", *args,
+                                         draft=self.DRAFT, **kwargs)
+        result.add_link('self', href)
+        return result
 
-def make_draft_3_doc(href, *args, **kwargs):
-    return make_doc(draft=dougrain.Draft.DRAFT_3)
-
-
-class DeleteEmbeddedTests(unittest.TestCase):
     def testDeleteOnlyEmbedForRel(self):
-        doc = make_doc("http://localhost/2")
-        doc.embed('child', make_doc("http://localhost/2/1"))
-        doc.embed('root', make_doc("http://localhost/"))
+        doc = self.make_doc("http://localhost/2")
+        doc.embed('child', self.make_doc("http://localhost/2/1"))
+        doc.embed('root', self.make_doc("http://localhost/"))
 
-        target_doc = make_doc("http://localhost/2")
-        target_doc.embed('root', make_doc("http://localhost/"))
+        target_doc = self.make_doc("http://localhost/2")
+        target_doc.embed('root', self.make_doc("http://localhost/"))
 
         doc.delete_embedded("child")
 
-        self.assertEquals(target_doc.as_object(), doc.as_object())
+        self.assertEquals(target_doc.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
         self.assertFalse('child' in doc.embedded)
         self.assertTrue('root' in doc.embedded)
 
     def testDeleteEveryEmbedForRel(self):
-        doc = make_doc("http://localhost/2")
-        doc.embed('root', make_doc("http://localhost/"))
-        doc.embed('child', make_doc("http://localhost/2/1"))
-        doc.embed('child', make_doc("http://localhost/2/1"))
-        doc.embed('child', make_doc("http://localhost/2/1"))
+        doc = self.make_doc("http://localhost/2")
+        doc.embed('root', self.make_doc("http://localhost/"))
+        doc.embed('child', self.make_doc("http://localhost/2/1"))
+        doc.embed('child', self.make_doc("http://localhost/2/1"))
+        doc.embed('child', self.make_doc("http://localhost/2/1"))
 
-        target_doc = make_doc("http://localhost/2")
-        target_doc.embed('root', make_doc("http://localhost/"))
+        target_doc = self.make_doc("http://localhost/2")
+        target_doc.embed('root', self.make_doc("http://localhost/"))
 
         doc.delete_embedded("child")
 
-        self.assertEquals(target_doc.as_object(), doc.as_object())
+        self.assertEquals(target_doc.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
         self.assertFalse('child' in doc.embedded)
         self.assertTrue('root' in doc.embedded)
 
     def testDeleteLastEmbed(self):
-        doc = make_doc("http://localhost/2")
-        doc.embed('root', make_doc("http://localhost/"))
-        doc.embed('child', make_doc("http://localhost/2/1"))
+        doc = self.make_doc("http://localhost/2")
+        doc.embed('root', self.make_doc("http://localhost/"))
+        doc.embed('child', self.make_doc("http://localhost/2/1"))
 
-        target_doc = make_doc("http://localhost/2")
+        target_doc = self.make_doc("http://localhost/2")
 
         doc.delete_embedded('root')
         doc.delete_embedded('child')
 
-        self.assertEquals(target_doc.as_object(), doc.as_object())
+        self.assertEquals(target_doc.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
 
     def testDeleteIndividualEmbeds(self):
-        doc = make_doc("http://localhost/2")
-        doc.embed('root', make_doc("http://localhost/"))
-        doc.embed('child', make_doc("http://localhost/2/1"))
-        doc.embed('child', make_doc("http://localhost/2/2"))
-        doc.embed('child', make_doc("http://localhost/2/3"))
+        doc = self.make_doc("http://localhost/2")
+        doc.embed('root', self.make_doc("http://localhost/"))
+        doc.embed('child', self.make_doc("http://localhost/2/1"))
+        doc.embed('child', self.make_doc("http://localhost/2/2"))
+        doc.embed('child', self.make_doc("http://localhost/2/3"))
 
-        doc2 = make_doc("http://localhost/2")
-        doc2.embed('root', make_doc("http://localhost/"))
-        doc2.embed('child', make_doc("http://localhost/2/2"))
-        doc2.embed('child', make_doc("http://localhost/2/3"))
+        doc2 = self.make_doc("http://localhost/2")
+        doc2.embed('root', self.make_doc("http://localhost/"))
+        doc2.embed('child', self.make_doc("http://localhost/2/2"))
+        doc2.embed('child', self.make_doc("http://localhost/2/3"))
 
-        doc3 = make_doc("http://localhost/2")
-        doc3.embed('root', make_doc("http://localhost/"))
-        doc3.embed('child', make_doc("http://localhost/2/2"))
+        doc3 = self.make_doc("http://localhost/2")
+        doc3.embed('root', self.make_doc("http://localhost/"))
+        doc3.embed('child', self.make_doc("http://localhost/2/2"))
 
-        doc4 = make_doc("http://localhost/2")
-        doc4.embed('root', make_doc("http://localhost/"))
+        doc4 = self.make_doc("http://localhost/2")
+        doc4.embed('root', self.make_doc("http://localhost/"))
 
-        doc5 = make_doc("http://localhost/2")
+        doc5 = self.make_doc("http://localhost/2")
 
         doc.delete_embedded("child", "http://localhost/2/1")
-        self.assertEquals(doc2.as_object(), doc.as_object())
+        self.assertEquals(doc2.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
 
         doc.delete_embedded("child", "http://localhost/2/3")
-        self.assertEquals(doc3.as_object(), doc.as_object())
+        self.assertEquals(doc3.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
         
         doc.delete_embedded("child", "http://localhost/2/2")
-        self.assertEquals(doc4.as_object(), doc.as_object())
+        self.assertEquals(doc4.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
 
         doc.delete_embedded("root", "http://localhost/")
-        self.assertEquals(doc5.as_object(), doc.as_object())
+        self.assertEquals(doc5.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
 
     def testDeleteEmbedsWithoutRel(self):
-        doc = make_doc("http://localhost/3")
-        doc.embed('child', make_doc("http://localhost/3/1"))
-        doc.embed('child', make_doc("http://localhost/3/2"))
-        doc.embed('favorite', make_doc("http://localhost/3/1"))
+        doc = self.make_doc("http://localhost/3")
+        doc.embed('child', self.make_doc("http://localhost/3/1"))
+        doc.embed('child', self.make_doc("http://localhost/3/2"))
+        doc.embed('favorite', self.make_doc("http://localhost/3/1"))
 
-        target_doc = make_doc("http://localhost/3")
-        target_doc.embed('child', make_doc("http://localhost/3/2"))
+        target_doc = self.make_doc("http://localhost/3")
+        target_doc.embed('child', self.make_doc("http://localhost/3/2"))
 
         doc.delete_embedded(href="http://localhost/3/1")
 
-        self.assertEquals(target_doc.as_object(), doc.as_object())
+        self.assertEquals(target_doc.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
 
     def testDeleteAllEmbeds(self):
-        doc = make_doc("http://localhost/3")
-        doc.embed('child', make_doc("http://localhost/3/1"))
-        doc.embed('child', make_doc("http://localhost/3/2"))
-        doc.embed('favorite', make_doc("http://localhost/3/1"))
+        doc = self.make_doc("http://localhost/3")
+        doc.embed('child', self.make_doc("http://localhost/3/1"))
+        doc.embed('child', self.make_doc("http://localhost/3/2"))
+        doc.embed('favorite', self.make_doc("http://localhost/3/1"))
 
-        target_doc = make_doc("http://localhost/3")
+        target_doc = self.make_doc("http://localhost/3")
 
         doc.delete_embedded()
 
-        self.assertEquals(target_doc.as_object(), doc.as_object())
+        self.assertEquals(target_doc.as_object().get(self.EMBEDDED_KEY),
+                          doc.as_object().get(self.EMBEDDED_KEY))
 
     def testDeleteEmbedWithMissingRel(self):
-        doc = make_doc("http://localhost/3")
-        doc.embed('child', make_doc("http://localhost/3/1"))
-        doc.embed('child', make_doc("http://localhost/3/2"))
-        doc.embed('favorite', make_doc("http://localhost/3/1"))
+        doc = self.make_doc("http://localhost/3")
+        doc.embed('child', self.make_doc("http://localhost/3/1"))
+        doc.embed('child', self.make_doc("http://localhost/3/2"))
+        doc.embed('favorite', self.make_doc("http://localhost/3/1"))
 
-        target_doc = make_doc("http://localhost/3")
-        target_doc.embed('child', make_doc("http://localhost/3/1"))
-        target_doc.embed('child', make_doc("http://localhost/3/2"))
-        target_doc.embed('favorite', make_doc("http://localhost/3/1"))
+        target_doc = self.make_doc("http://localhost/3")
+        target_doc.embed('child', self.make_doc("http://localhost/3/1"))
+        target_doc.embed('child', self.make_doc("http://localhost/3/2"))
+        target_doc.embed('favorite', self.make_doc("http://localhost/3/1"))
 
         missing_rel = ''.join(doc.embedded.keys()) + '_'
         doc.delete_embedded(missing_rel)
@@ -920,24 +1160,54 @@ class DeleteEmbeddedTests(unittest.TestCase):
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
     def testDeleteEmbedWithNoEmbeds(self):
-        doc = make_doc("http://localhost/3")
-        target_doc = make_doc("http://localhost/3")
+        doc = self.make_doc("http://localhost/3")
+        target_doc = self.make_doc("http://localhost/3")
 
         doc.delete_embedded()
 
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
+    def testAutomaticLink(self):
+        doc = self.make_doc("http://localhost/3")
+        doc.embed('child', self.make_doc("http://localhost/3/1"))
+        doc.delete_embedded('child')
 
-class CurieMutationTest(unittest.TestCase):
+        self.assertAutomaticLink('child' in doc.links)
+
+
+class DeleteEmbeddedTestsDraft5(DeleteEmbeddedTestsMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_5
+    assertAutomaticLink = unittest.TestCase.assertTrue
+
+
+class DeleteEmbeddedTestsDraft4(DeleteEmbeddedTestsMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_4
+    assertAutomaticLink = unittest.TestCase.assertFalse
+
+
+class DeleteEmbeddedTestsDraft3(DeleteEmbeddedTestsMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_3
+    assertAutomaticLink = unittest.TestCase.assertFalse
+
+#
+
+class CurieMutationTestMixin(object):
+    def make_doc(self, href, *args, **kwargs):
+        result = dougrain.Document.empty("http://localhost", *args,
+                                         draft=self.DRAFT, **kwargs)
+        result.add_link('self', href)
+        return result
+
     def setUp(self):
-        self.doc = make_doc("http://localhost/3")
+        self.doc = self.make_doc("http://localhost/3")
         self.doc.set_curie('rel', "http://localhost/rels/{rel}")
 
     def testCurieJSONHasCorrectType(self):
         self.assertEquals(type(self.doc.as_object()['_links']['curies']), list)
 
     def testSetCurie(self):
-        new_doc = dougrain.Document(self.doc.as_object(), self.doc.base_uri)
+        new_doc = dougrain.Document(self.doc.as_object(), self.doc.base_uri,
+                                    draft=self.DRAFT)
         self.assertEquals("http://localhost/rels/foo",
                           new_doc.expand_curie("rel:foo"))
 
@@ -952,7 +1222,8 @@ class CurieMutationTest(unittest.TestCase):
         self.doc.set_curie('tm', "http://www.touchmachine.com/{rel}.html")
         self.doc.drop_curie('rel')
 
-        new_doc = dougrain.Document(self.doc.as_object(), self.doc.base_uri)
+        new_doc = dougrain.Document(self.doc.as_object(), self.doc.base_uri,
+                                    draft=self.DRAFT)
         self.assertEquals("rel:foo", self.doc.expand_curie("rel:foo"))
         self.assertEquals("http://www.touchmachine.com/index.html",
                           new_doc.expand_curie("tm:index"))
@@ -962,19 +1233,28 @@ class CurieMutationTest(unittest.TestCase):
         self.assertEquals("rel:foo", self.doc.expand_curie("rel:foo"))
 
 
-class CurieMutationTestDraft3(CurieMutationTest):
-    def setUp(self):
-        self.doc = dougrain.Document.empty("http://localhost/3",
-                                           draft=dougrain.Draft.DRAFT_3)
-        self.doc.set_curie('rel', "http://localhost/rels/{rel}")
-        self.doc.add_link('self', "http://localhost/3")
+class CurieMutationTestDraft5(CurieMutationTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_5
+
+    def testCurieJSONHasCorrectType(self):
+        self.assertEquals(type(self.doc.as_object()['_links']['curies']), list)
+
+class CurieMutationTestDraft4(CurieMutationTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_5
+
+    def testCurieJSONHasCorrectType(self):
+        self.assertEquals(type(self.doc.as_object()['_links']['curies']), list)
+
+class CurieMutationTestDraft3(CurieMutationTestMixin, unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_3
 
     def testCurieJSONHasCorrectType(self):
         self.assertEquals(type(self.doc.as_object()['_links']['curie']), dict)
 
+#
 
 class CurieHidingTests(unittest.TestCase):
-    def testCuriesAreNotLinks(self):
+    def testCuriesAreNotLinksDraft5(self):
         doc = dougrain.Document({
             '_links': {
                 'curies': [{
@@ -986,11 +1266,27 @@ class CurieHidingTests(unittest.TestCase):
                     'href': "http://localhost/0"
                 }
             }
-        }, "http://localhost/0")
+        }, "http://localhost/0", draft=dougrain.Draft.DRAFT_5)
 
         self.assertFalse('curies' in doc.links)
 
-    def testDraft3CuriesAreNotLinks(self):
+    def testCuriesAreNotLinksDraft4(self):
+        doc = dougrain.Document({
+            '_links': {
+                'curies': [{
+                    'href': "http://localhost/rel/{rel}",
+                    'name': "rel",
+                    'templated': True
+                }],
+                'self': {
+                    'href': "http://localhost/0"
+                }
+            }
+        }, "http://localhost/0", draft=dougrain.Draft.DRAFT_4)
+
+        self.assertFalse('curies' in doc.links)
+
+    def testCuriesAreNotLinksDraft3(self):
         doc = dougrain.Document({
             '_links': {
                 'curie': {
@@ -1002,10 +1298,52 @@ class CurieHidingTests(unittest.TestCase):
                     'href': "http://localhost/0"
                 }
             }
-        }, "http://localhost/0")
+        }, "http://localhost/0", draft=dougrain.Draft.DRAFT_3)
 
         self.assertFalse('curie' in doc.links)
 
+    def testDraft4CuriesAreLinksInDraft43Documents(self):
+        modern_doc = dougrain.Document.empty("http://localhost/0",
+                                             draft=dougrain.Draft.DRAFT_4)
+        modern_doc.set_curie('rel', '/rel/{rel}')
+        doc = dougrain.Document.from_object(modern_doc.as_object(),
+                                            base_uri="http://localhost/0",
+                                            draft=dougrain.Draft.DRAFT_3)
+        self.assertTrue('curies' in doc.links)
+        self.assertFalse('curie' in doc.links)
+
+    def testDraft5CuriesAreLinksInDraft43Documents(self):
+        modern_doc = dougrain.Document.empty("http://localhost/0",
+                                             draft=dougrain.Draft.DRAFT_5)
+        modern_doc.set_curie('rel', '/rel/{rel}')
+        doc = dougrain.Document.from_object(modern_doc.as_object(),
+                                            base_uri="http://localhost/0",
+                                            draft=dougrain.Draft.DRAFT_3)
+        self.assertTrue('curies' in doc.links)
+        self.assertFalse('curie' in doc.links)
+
+    def testDraft3CuriesAreLinksInDraft5Document(self):
+        doc = dougrain.Document({
+            '_links': {
+                'curie': {
+                    'href': "http://localhost/rel/{rel}",
+                    'name': "rel",
+                    'templated': True
+                },
+                'curies': [{
+                    'href': "http://localhost/rel/{rel}",
+                    'name': "rel",
+                    'templated': True
+                }],
+                'self': {
+                    'href': "http://localhost/0"
+                }
+            }
+        }, "http://localhost/0", draft=dougrain.Draft.DRAFT_5)
+
+        self.assertFalse('curies' in doc.links)
+        self.assertTrue('curie' in doc.links)
+                
     def testDraft3CuriesAreLinksInDraft4Document(self):
         doc = dougrain.Document({
             '_links': {
@@ -1023,15 +1361,17 @@ class CurieHidingTests(unittest.TestCase):
                     'href': "http://localhost/0"
                 }
             }
-        }, "http://localhost/0")
+        }, "http://localhost/0", draft=dougrain.Draft.DRAFT_4)
 
         self.assertFalse('curies' in doc.links)
         self.assertTrue('curie' in doc.links)
                 
+#
 
-class LinkCanonicalizationTests(unittest.TestCase):
+class LinkCanonicalizationTestsMixin(object):
     def setUp(self):
-        self.doc = dougrain.Document.empty("http://localhost/1/")
+        self.doc = dougrain.Document.empty("http://localhost/1/",
+                                           draft=self.DRAFT)
         self.doc.set_curie("role", "/roles/{rel}")
 
     def testFindsLinksByFullRelTypeURI(self):
@@ -1053,55 +1393,65 @@ class LinkCanonicalizationTests(unittest.TestCase):
                            [link.href for link in self.doc.links["role:app"]])
 
     def testMergesLinkswhenLoading(self):
-        self.doc = dougrain.Document.from_object(
-            {
-                "_links": {
-                    "curies": [
-                        {"href": "/roles/{rel}",
-                         "name": "role",
-                         "templated": True}
-                    ],
-                    "self": {"href": "/1"},
-                    "role:app": {"href": "/apps/1"},
-                    "/roles/app": {"href": "/apps/2"},
-                    "http://localhost/roles/app": {"href": "/apps/3"},
-                }
-            },
-            base_uri="http://localhost/1")
-        self.doc.set_curie("role", "/roles/{rel}")
-        
-        self.assertEquals(set(["/apps/1", "/apps/2", "/apps/3"]),
-                          set(link.href for link in self.doc.links["role:app"]))
+        links = dict(self.CURIES)
+        links.update({
+            "self": {"href": "/1"},
+            "role:app": {"href": "/apps/1"},
+            "/roles/app": {"href": "/apps/2"},
+            "http://localhost/roles/app": {"href": "/apps/3"},
+        })
 
-    def testMergesLinkswhenLoadingDraft3(self):
         self.doc = dougrain.Document.from_object(
-            {
-                "_links": {
-                    "curie": {
-                        "href": "/roles/{rel}",
-                        "name": "role",
-                        "templated": True
-                    },
-                    "self": {"href": "/1"},
-                    "role:app": {"href": "/apps/1"},
-                    "/roles/app": {"href": "/apps/2"},
-                    "http://localhost/roles/app": {"href": "/apps/3"},
-                }
-            },
-            base_uri="http://localhost/1")
+            {"_links": links},
+            base_uri="http://localhost/1",
+            draft=self.DRAFT)
         self.doc.set_curie("role", "/roles/{rel}")
         
         self.assertEquals(set(["/apps/1", "/apps/2", "/apps/3"]),
                           set(link.href for link in self.doc.links["role:app"]))
 
 
-class EmbeddedCanonicalizationTests(unittest.TestCase):
+class LinkCanonicalizationTestsDraft5(LinkCanonicalizationTestsMixin,
+                                      unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_5
+    CURIES = {
+        "curies": [
+            {"href": "/roles/{rel}", "name": "role", "templated": True}
+        ]
+    }
+
+
+class LinkCanonicalizationTestsDraft4(LinkCanonicalizationTestsMixin,
+                                      unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_4
+    CURIES = {
+        "curies": [
+            {"href": "/roles/{rel}", "name": "role", "templated": True}
+        ]
+    }
+
+
+class LinkCanonicalizationTestsDraft3(LinkCanonicalizationTestsMixin,
+                                      unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_4
+    CURIES = {
+        "curie": {
+            "href": "/roles/{rel}",
+            "name": "role",
+            "templated": True
+        }
+    }
+
+#
+
+class EmbeddedCanonicalizationTestMixin(object):
     def setUp(self):
-        self.doc = dougrain.Document.empty("http://localhost/1/")
+        self.doc = dougrain.Document.empty("http://localhost/1/",
+                                           draft=self.DRAFT)
         self.doc.set_curie("role", "/roles/{rel}")
 
     def new_doc(self, uri):
-        doc = dougrain.Document.empty(uri)
+        doc = dougrain.Document.empty(uri, draft=self.DRAFT)
         doc.add_link('self', uri)
         doc.set_property("name", uri)
         return doc
@@ -1125,6 +1475,22 @@ class EmbeddedCanonicalizationTests(unittest.TestCase):
                            [embedded.properties['name']
                             for embedded in self.doc.embedded["role:app"]])
 
+
+class EmbeddedCanonicalizationTestDraft5(EmbeddedCanonicalizationTestMixin,
+                                         unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_5
+
+
+class EmbeddedCanonicalizationTestDraft4(EmbeddedCanonicalizationTestMixin,
+                                         unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_4
+
+
+class EmbeddedCanonicalizationTestDraft3(EmbeddedCanonicalizationTestMixin,
+                                         unittest.TestCase):
+    DRAFT = dougrain.Draft.DRAFT_3
+
+#
 
 class EdgeCasesTests(unittest.TestCase):
     def testUrlOfDocumentWithMultipleSelfLinksFromFirstSelfLink(self):
@@ -1173,6 +1539,7 @@ class EdgeCasesTests(unittest.TestCase):
 
         self.assertFalse('rel:me' in doc.embedded)
 
+#
 
 class ExplicitDraftTests(unittest.TestCase):
     def testDraft3DocumentHasOldCurieBehaviour(self):
@@ -1207,6 +1574,23 @@ class ExplicitDraftTests(unittest.TestCase):
         curie = links['curies']
         self.assertTrue(isinstance(curie, list))
 
+    def testDraft5DocumentHasNewCurieBehaviour(self):
+        doc = dougrain.Document.empty("http://localhost",
+                                      draft=dougrain.Draft.DRAFT_5)
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_5)
+        doc.add_link('self', "/1")
+        doc.set_curie('rel', "/rels/{rel}")
+
+        links = doc.as_object()['_links']
+        self.assertFalse('curie' in links)
+        self.assertTrue('curies' in links)
+        curie = links['curies']
+        self.assertTrue(isinstance(curie, list))
+        doc.set_curie('foo', "/foos/{rel}")
+        curie = links['curies']
+        self.assertTrue(isinstance(curie, list))
+
+#
 
 class DraftDetectionTests(unittest.TestCase):
     def testDocumentsWithCurieAreDraft3(self):
@@ -1215,26 +1599,44 @@ class DraftDetectionTests(unittest.TestCase):
             "http://localhost/")
         self.assertEquals(doc.draft, dougrain.Draft.DRAFT_3)
 
-    def testDocumentsWithCuriesAreDraft4(self):
+    def testDocumentsWithCuriesAreDraft5(self):
         doc = dougrain.Document.from_object(
             {'_links': {'curies': []}},
             "http://localhost/")
-        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_4)
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_5)
 
     def testDocumentsWithNoCurieKeyAreLatest(self):
         doc = dougrain.Document.empty("http://localhost/")
         self.assertEquals(doc.draft, dougrain.Draft.LATEST)
 
-    def testLatestDraftIsDraft4(self):
+    def testLatestDraftIsDraft5(self):
         doc = dougrain.Document.from_object({}, "http://localhost/",
                                             draft=dougrain.Draft.LATEST)
-        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_4)
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_5)
 
     def testExplicitDraftOverridesAutodetection(self):
         doc = dougrain.Document.from_object(
             {'_links': {'curie': {"href": "/roles/{rel}",
                                   "name": "role",
                                   "templated": True}}},
+            "http://localhost/",
+            draft=dougrain.Draft.DRAFT_5
+        )
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_5)
+
+        doc = dougrain.Document.from_object(
+            {'_links': {'curie': {"href": "/roles/{rel}",
+                                  "name": "role",
+                                  "templated": True}}},
+            "http://localhost/",
+            draft=dougrain.Draft.DRAFT_4
+        )
+        self.assertEquals(doc.draft, dougrain.Draft.DRAFT_4)
+
+        doc = dougrain.Document.from_object(
+            {'_links': {'curies': [{"href": "/roles/{rel}",
+                                    "name": "role",
+                                    "templated": True}]}},
             "http://localhost/",
             draft=dougrain.Draft.DRAFT_4
         )

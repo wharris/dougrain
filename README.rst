@@ -21,11 +21,12 @@ stable API until HAL itself is stable.
 Compatibility
 -------------
 
-Drafts **3** and **4**.
+Drafts **3**, **4**, and **5**.
 
-This version is conforms to `JSON Hypermedia API Language Internet Draft 4
-<http://tools.ietf.org/html/draft-kelly-json-hal-04>`_, but can also parse and
-output JSON from
+This version conforms to `JSON Hypermedia API Language Internet Draft 5
+<http://tools.ietf.org/html/draft-kelly-json-hal-04>`_,
+but it can also work with JSON from
+`Draft 4 <http://tools.ietf.org/html/draft-kelly-json-hal-03>`_ and
 `Draft 3 <http://tools.ietf.org/html/draft-kelly-json-hal-03>`_.
 The draft version can be explicitly selected when the document is constructed,
 but the default behavior is for documents to automatically detect which draft
