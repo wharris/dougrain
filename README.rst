@@ -92,12 +92,17 @@ Example
     ...         }, 
     ...         "welcome": "Hi there!", 
     ...         "_links": {
-    ...             "curie": {
-    ...                 "href": "http://localhost/rels/{rel}", 
-    ...                 "name": "r"
-    ...             }, 
+    ...             "curies": [
+    ...                 {
+    ...                     "href": "http://localhost/rels/{rel}", 
+    ...                     "name": "r"
+    ...                 }
+    ...             ], 
     ...             "self": {
     ...                 "href": "/"
+    ...             },
+    ...             "r:post": {
+    ...                 "href": "/1"
     ...             }
     ...         }
     ...     },
