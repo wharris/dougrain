@@ -106,7 +106,7 @@ Example
     ...             }
     ...         }
     ...     },
-    ...     relative_to_url="http://localhost/")
+    ...     base_uri="http://localhost/")
     >>> doc.properties['welcome']
     'Hi there!'
     >>> doc.embedded['r:post'].url()
