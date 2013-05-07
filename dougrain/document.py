@@ -11,7 +11,9 @@ from functools import wraps
 
 import curie
 import link
-import drafts
+from drafts import AUTO
+from drafts import LINKS_KEY
+from drafts import EMBEDDED_KEY
 
 class CanonicalRels(UserDict.DictMixin, object):
     """Smart querying of link relationship types and link relationships.
@@ -204,9 +206,6 @@ def mutator(fn):
     return deco
 
 
-LINKS_KEY = '_links'
-EMBEDDED_KEY = '_embedded'
-
 class Document(object):
     """Represents the document for a HAL resource.
 
@@ -235,7 +234,7 @@ class Document(object):
                  which the document should conform. Defaults to ``drafts.AUTO``.
 
     """
-    def __init__(self, o, base_uri, parent_curies=None, draft=drafts.AUTO):
+    def __init__(self, o, base_uri, parent_curies=None, draft=AUTO):
         self.o = o
         self.base_uri = base_uri
         self.parent_curies = parent_curies
@@ -488,8 +487,7 @@ class Document(object):
             del self.o[LINKS_KEY]
 
     @classmethod
-    def from_object(cls, o, base_uri=None, parent_curies=None,
-                    draft=drafts.AUTO):
+    def from_object(cls, o, base_uri=None, parent_curies=None, draft=AUTO):
         """Returns a new ``Document`` based on a JSON object or array.
 
         Arguments:
@@ -518,7 +516,7 @@ class Document(object):
         return cls(o, base_uri, parent_curies, draft)
 
     @classmethod
-    def empty(cls, base_uri=None, draft=drafts.AUTO):
+    def empty(cls, base_uri=None, draft=AUTO):
         """Returns an empty ``Document``.
 
         Arguments:
