@@ -235,69 +235,103 @@ class Document(object):
 
     """
     def __init__(self, o, base_uri, parent_curies=None, draft=AUTO):
+        self.prepare_cache()
         self.o = o
         self.base_uri = base_uri
         self.parent_curies = parent_curies
         self.draft = draft.detect(o)
-        self.prepare_cache()
 
     RESERVED_ATTRIBUTE_NAMES = (LINKS_KEY, EMBEDDED_KEY)
 
-    def prepare_cache(self):
-        def properties_cache():
-            properties = dict(self.o)
-            for name in self.RESERVED_ATTRIBUTE_NAMES:
-                properties[name] = None
-                del properties[name]
-            return properties
+    def properties_cache(self):
+        properties = dict(self.o)
+        for name in self.RESERVED_ATTRIBUTE_NAMES:
+            properties[name] = None
+            del properties[name]
+        return properties
 
-        def links_cache():
-            links = {}
+    def links_cache(self):
+        links = {}
 
-            links_json = self.o.get(LINKS_KEY, {})
+        links_json = self.o.get(LINKS_KEY, {})
 
-            for key, value in links_json.iteritems():
-                if key == self.draft.curies_rel:
-                    continue
-                links[key] = link.Link.from_object(value, self.base_uri)
+        for key, value in links_json.iteritems():
+            if key == self.draft.curies_rel:
+                continue
+            links[key] = link.Link.from_object(value, self.base_uri)
 
-            return CanonicalRels(links, self.curies, self.base_uri)
+        return CanonicalRels(links, self.curies, self.base_uri)
 
-        def load_curie_collection():
-            result = curie.CurieCollection()
-            if self.parent_curies is not None:
-                result.update(self.parent_curies)
+    def curies_cache(self):
+        result = curie.CurieCollection()
+        if self.parent_curies is not None:
+            result.update(self.parent_curies)
 
-            links_json = self.o.get('_links', {})
-            curies_json = links_json.get(self.draft.curies_rel)
+        links_json = self.o.get('_links', {})
+        curies_json = links_json.get(self.draft.curies_rel)
 
-            if not curies_json:
-                return result
-
-            curies = link.Link.from_object(curies_json, self.base_uri)
-
-            if not isinstance(curies, list):
-                curies = [curies]
-
-            for curie_link in curies:
-                result[curie_link.name] = curie_link
-
+        if not curies_json:
             return result
 
-        def embedded_cache():
-            embedded = {}
-            for key, value in self.o.get(EMBEDDED_KEY, {}).iteritems():
-                embedded[key] = self.from_object(value,
-                                                 self.base_uri,
-                                                 self.curies)
-            return CanonicalRels(embedded, self.curies, self.base_uri)
+        curies = link.Link.from_object(curies_json, self.base_uri)
 
-        self.properties = properties_cache()
-        self.curies = load_curie_collection()
-        self.links = links_cache()
-        self.embedded = embedded_cache()
-        self.rels = Relationships(self.links, self.embedded, self.curies,
-                                  self.base_uri)
+        if not isinstance(curies, list):
+            curies = [curies]
+
+        for curie_link in curies:
+            result[curie_link.name] = curie_link
+
+        return result
+
+    def embedded_cache(self):
+        embedded = {}
+        for key, value in self.o.get(EMBEDDED_KEY, {}).iteritems():
+            embedded[key] = self.from_object(value,
+                                             self.base_uri,
+                                             self.curies)
+
+        return CanonicalRels(embedded, self.curies, self.base_uri)
+
+    def rels_cache(self):
+        return Relationships(self.links, self.embedded, self.curies,
+                             self.base_uri)
+
+    def prepare_cache(self):
+        self._properties_cache = None
+        self._curies_cache = None
+        self._links_cache = None
+        self._embedded_cache = None
+        self._rels_cache = None
+
+    @property
+    def properties(self):
+        if self._properties_cache is None:
+            self._properties_cache = self.properties_cache()
+        return self._properties_cache
+
+    @property
+    def curies(self):
+        if self._curies_cache is None:
+            self._curies_cache = self.curies_cache()
+        return self._curies_cache
+
+    @property
+    def links(self):
+        if self._links_cache is None:
+            self._links_cache = self.links_cache()
+        return self._links_cache
+
+    @property
+    def embedded(self):
+        if self._embedded_cache is None:
+            self._embedded_cache = self.embedded_cache()
+        return self._embedded_cache
+
+    @property
+    def rels(self):
+        if self._rels_cache is None:
+            self._rels_cache = self.rels_cache()
+        return self._rels_cache
 
     def url(self):
         """Returns the URL for the resource based on the ``self`` link.
