@@ -189,19 +189,23 @@ class Relationships(UserDict.DictMixin, object):
         return self.canonical_rels.keys()
          
 
-def mutator(fn):
+def mutator(*cache_names):
     """Decorator for ``Document`` methods that change the document.
 
     This decorator ensures that the object's caches are kept in sync
     when changes are made.
     
     """
-    @wraps(fn)
-    def deco(self, *args, **kwargs):
-        try:
-            return fn(self, *args, **kwargs)
-        finally:
-            self.prepare_cache()
+    def deco(fn):
+        @wraps(fn)
+        def _fn(self, *args, **kwargs):
+            try:
+                return fn(self, *args, **kwargs)
+            finally:
+                for cache_name in cache_names:
+                    setattr(self, cache_name, None)
+
+        return _fn
 
     return deco
 
@@ -372,7 +376,7 @@ class Document(object):
         """Returns a ``Link`` to the resource."""
         return self.links['self']
 
-    @mutator
+    @mutator('_properties_cache')
     def set_property(self, key, value):
         """Set a property on the document.
 
@@ -392,7 +396,7 @@ class Document(object):
             return
         self.o[key] = value
 
-    @mutator
+    @mutator('_properties_cache')
     def delete_property(self, key):
         """Remove an property from the document.
 
@@ -411,7 +415,7 @@ class Document(object):
         """Retuns a new link relative to this resource."""
         return link.Link(dict(href=href, **kwargs), self.base_uri)
 
-    @mutator
+    @mutator('_links_cache')
     def add_link(self, rel, target, **kwargs):
         """Adds a link to the document.
 
@@ -462,7 +466,7 @@ class Document(object):
         else:
             links[original_rel] = [current_links, new_link]
 
-    @mutator
+    @mutator('_links_cache')
     def delete_link(self, rel=None, href=lambda _: True):
         """Deletes links from the document.
 
@@ -563,7 +567,7 @@ class Document(object):
         """
         return cls.from_object({}, base_uri=base_uri, draft=draft)
 
-    @mutator
+    @mutator('_embedded_cache')
     def embed(self, rel, other):
         """Embeds a document inside this document.
 
@@ -617,7 +621,7 @@ class Document(object):
 
         self.add_link(rel, other)
 
-    @mutator
+    @mutator('_embedded_cache')
     def delete_embedded(self, rel=None, href=lambda _: True):
         """Removes an embedded resource from this document.
 
@@ -686,6 +690,7 @@ class Document(object):
         if not self.o[EMBEDDED_KEY]:
             del self.o[EMBEDDED_KEY]
 
+    @mutator('_curies_cache')
     def set_curie(self, name, href):
         """Sets a CURIE.
 
@@ -696,7 +701,7 @@ class Document(object):
 
         self.draft.set_curie(self, name, href)
 
-    @mutator
+    @mutator('_curies_cache')
     def drop_curie(self, name):
         """Removes a CURIE.
 
