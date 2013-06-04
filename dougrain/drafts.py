@@ -56,7 +56,8 @@ class Draft4(Draft3):
         # CURIE links should always be in an array, even if there is only
         # one.
         doc.o.setdefault(LINKS_KEY, {}).setdefault(self.curies_rel, [])
-        doc.add_link(self.curies_rel, href, name=name, templated=True)
+        doc.o[LINKS_KEY][self.curies_rel].append(
+            {'href':href, 'name':name, 'templated':True})
 
 
 class Draft5(Draft4):
