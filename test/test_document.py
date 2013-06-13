@@ -642,6 +642,22 @@ class AddLinkStringTests(unittest.TestCase):
         self.assertEquals(target, doc.as_object())
         self.assertEquals(target_doc.links, doc.links)
 
+    def testAddWrappedLink(self):
+        target = {
+            '_links': {
+                'self': {'href': "http://localhost/1"},
+                'item': [{'href': "http://localhost/1/1"}]
+            }
+        }
+
+        target_doc = dougrain.Document.from_object(target, "http://localhost/")
+
+        doc = dougrain.Document.empty()
+        self.add_link(doc, 'self', "http://localhost/1")
+        self.add_link(doc, 'item', "http://localhost/1/1", wrap=list)
+
+        self.assertEquals(target, doc.as_object())
+
     def testAddLinkForSecondRelKeepsFirstRel(self):
         target = {
             '_links': {
@@ -723,18 +739,18 @@ class AddLinkStringTests(unittest.TestCase):
 #
 
 class AddObjectLinkTests(AddLinkStringTests):
-    def add_link(self, doc, rel, href, **kwargs):
+    def add_link(self, doc, rel, href, wrap=False, **kwargs):
         link = doc.link(href, **kwargs)
-        doc.add_link(rel, link)
+        doc.add_link(rel, link, wrap=wrap)
 
 #
 
 class AddDocumentLinkTests(AddLinkStringTests):
-    def add_link(self, doc, rel, href, **kwargs):
+    def add_link(self, doc, rel, href, wrap=False, **kwargs):
         target = dougrain.Document.empty(href)
         self_link = target.link(href, **kwargs)
         target.add_link('self', self_link)
-        doc.add_link(rel, target)
+        doc.add_link(rel, target, wrap=wrap)
 
 #
 
@@ -938,6 +954,16 @@ class EmbedTestMixin(object):
         self.doc.embed('child', self.embedded1)
         self.assertEquals(expected, self.doc.as_object())
         self.assertEquals(self.embedded1, self.doc.embedded['child'])
+
+    def testEmbedWrapped(self):
+        expected = {
+            '_embedded': {
+                'child': [self.embedded1.as_object()]
+            }
+        }
+        self.doc.embed('child', self.embedded1, wrap=True)
+        self.assertEquals(expected, self.doc.as_object())
+        self.assertEquals([self.embedded1], self.doc.embedded['child'])
 
     def testEmbedAnotherRel(self):
         expected = {

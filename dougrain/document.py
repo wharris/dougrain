@@ -416,7 +416,7 @@ class Document(object):
         return link.Link(dict(href=href, **kwargs), self.base_uri)
 
     @mutator('_links_cache')
-    def add_link(self, rel, target, **kwargs):
+    def add_link(self, rel, target, wrap=False, **kwargs):
         """Adds a link to the document.
 
         Calling code should use this method to add links instead of
@@ -443,6 +443,9 @@ class Document(object):
           (http://www.iana.org/assignments/link-relations/link-relations.xml),
           a full URI, or a CURIE.
         - ``target``: the destination of the link.
+        - ``wrap``: Defaults to False, but if True, specifies that the link
+          object should be initally wrapped in a JSON array even if it is the
+          first link for the given ``rel``.
 
         """
         if hasattr(target, 'as_link'):
@@ -455,7 +458,10 @@ class Document(object):
         new_link = link.as_object()
         collected_links = CanonicalRels(links, self.curies, self.base_uri)
         if rel not in collected_links:
-            links[rel] = new_link
+            if wrap:
+                links[rel] = [new_link]
+            else:
+                links[rel] = new_link
             return
 
         original_rel = collected_links.original_key(rel)
@@ -568,7 +574,7 @@ class Document(object):
         return cls.from_object({}, base_uri=base_uri, draft=draft)
 
     @mutator('_embedded_cache')
-    def embed(self, rel, other):
+    def embed(self, rel, other, wrap=False):
         """Embeds a document inside this document.
 
         Arguments:
@@ -581,6 +587,9 @@ class Document(object):
         - ``other``: a ``Document`` instance that will be embedded in this
           document. If ``other`` is identical to this document, this method
           will silently fail.
+        - ``wrap``: Defaults to False, but if True, specifies that the embedded
+          resource object should be initally wrapped in a JSON array even if it
+          is the first embedded resource for the given ``rel``.
 
         Calling code should use this method to add embedded resources instead
         of modifying ``embedded`` directly.
@@ -599,7 +608,10 @@ class Document(object):
         collected_embedded = CanonicalRels(embedded, self.curies, self.base_uri)
 
         if rel not in collected_embedded:
-            embedded[rel] = other.as_object()
+            if wrap:
+                embedded[rel] = [other.as_object()]
+            else:
+                embedded[rel] = other.as_object()
         else:
             original_rel = collected_embedded.original_key(rel)
 

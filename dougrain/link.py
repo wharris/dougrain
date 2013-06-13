@@ -123,6 +123,9 @@ class Link(object):
 
         """
         if isinstance(o, list):
+            if len(o) == 1:
+                return cls.from_object(o[0], base_uri)
+
             return map(lambda x: cls.from_object(x, base_uri), o)
 
         return cls(o, base_uri)
