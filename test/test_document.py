@@ -1014,6 +1014,20 @@ class EmbedTestDraft5(EmbedTestMixin, unittest.TestCase):
         }
     }
 
+    EXPECTED_WITH_SELF_LINK_WRAPPED = {
+        '_links': {
+            'item': [{'href': "/test"}]
+        },
+        '_embedded': {
+            'item': [EmbedTestMixin.OBJECT_WITH_SELF]
+        }
+    }
+
+    def testEmbedWrappedWithSelfLink(self):
+        self.doc.embed('item', self.embedded_with_self, wrap=True)
+        self.assertEquals(self.EXPECTED_WITH_SELF_LINK_WRAPPED,
+                          self.doc.as_object())
+
 
 class EmbedTestDraft4(EmbedTestMixin, unittest.TestCase):
     DRAFT = dougrain.drafts.DRAFT_4

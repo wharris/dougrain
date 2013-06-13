@@ -631,7 +631,7 @@ class Document(object):
         if url in (link.url() for link in self.links.get(rel, [])):
             return
 
-        self.add_link(rel, other)
+        self.add_link(rel, other, wrap=wrap)
 
     @mutator('_embedded_cache')
     def delete_embedded(self, rel=None, href=lambda _: True):
