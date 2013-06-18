@@ -11,6 +11,8 @@ class BuilderTests(unittest.TestCase):
                                                self._testMethodName)
         self.builder = Builder(self.uri)
 
+
+class PropertyBuilderTests(BuilderTests):
     def testStartsWithNoProperties(self):
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
@@ -24,6 +26,8 @@ class BuilderTests(unittest.TestCase):
 
         self.assertEquals(doc.properties['spam'], "foo")
 
+
+class LinkBuilderTests(BuilderTests):
     def testAlreadyHasSelfLink(self):
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
@@ -128,6 +132,8 @@ class BuilderTests(unittest.TestCase):
 
         self.assertEqual(doc.expand_curie('rel:spam'), "rel:spam")
 
+
+class CurieBuilderTests(BuilderTests):
     def testAddCurie(self):
         self.builder.add_curie('rel', "/rels/{rel}")
         doc = Document.from_object(self.builder.as_object(),
@@ -180,6 +186,92 @@ class BuilderTests(unittest.TestCase):
 
         curies = self.builder.as_object()['_links']['curie']
         self.assertIsInstance(curies, dict)
+
+
+class EmbedBuilderTests(BuilderTests):
+    def make_target(self, name):
+        target_uri = "http://localhost/%s/%s/%s" % (self.__class__.__name__,
+                                                    self._testMethodName,
+                                                    name)
+        target_builder = Builder(target_uri)
+        target_builder.set_property('name', name)
+        return target_builder
+
+    def testFirstEmbedDefault(self):
+        target = self.make_target("first")
+        self.builder.embed('item', target)
+
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        self.assertIsInstance(self.builder.as_object()['_embedded']['item'],
+                              dict)
+        self.assertEquals(doc.embedded['item'].properties['name'], "first")
+
+    def testFirstEmbedNotWrapped(self):
+        target = self.make_target("first")
+        self.builder.embed('item', target, wrap=False)
+
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        self.assertIsInstance(self.builder.as_object()['_embedded']['item'],
+                              dict)
+        self.assertEquals(doc.embedded['item'].properties['name'], "first")
+
+    def testFirstEmbedWrapped(self):
+        target = self.make_target("first")
+        self.builder.embed('item', target, wrap=True)
+
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        self.assertIsInstance(self.builder.as_object()['_embedded']['item'],
+                              list)
+        item_embeds = doc.embedded['item']
+        names = [embedded.properties['name'] for embedded in item_embeds]
+        self.assertEquals(names, ["first"])
+
+    def testSecondEmbed(self):
+        self.builder.embed('item', self.make_target('first'))
+        self.builder.embed('item', self.make_target('second'))
+
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        item_embeds = doc.embedded['item']
+        names = [embedded.properties['name'] for embedded in item_embeds]
+        self.assertSequenceEqual(names, ['first', 'second'])
+
+    def testThirdEmbed(self):
+        self.builder.embed('item', self.make_target('first'))
+        self.builder.embed('item', self.make_target('second'))
+        self.builder.embed('item', self.make_target('third'))
+
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        item_embeds = doc.embedded['item']
+        names = [embedded.properties['name'] for embedded in item_embeds]
+        self.assertSequenceEqual(names, ['first', 'second', 'third'])
+
+    def testThreeWrappedEmbeds(self):
+        self.builder.embed('item', self.make_target('first'), wrap=True)
+        self.builder.embed('item', self.make_target('second'), wrap=True)
+        self.builder.embed('item', self.make_target('third'), wrap=True)
+
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        item_embeds = doc.embedded['item']
+        names = [embedded.properties['name'] for embedded in item_embeds]
+        self.assertSequenceEqual(names, ['first', 'second', 'third'])
+
+
+class EmbedBuilderDocumentTests(EmbedBuilderTests):
+    def make_target(self, name):
+        target_uri = "http://localhost/%s/%s/%s" % (self.__class__.__name__,
+                                                    self._testMethodName,
+                                                    name)
+        target_doc = Document.empty("http://localhost")
+        target_doc.add_link('self', target_uri)
+        target_doc.set_property('name', name)
+        return target_doc
+
 
 
 if __name__ == '__main__':

@@ -14,22 +14,30 @@ class Builder(object):
     def as_object(self):
         return self.o
 
-    def add_link(self, rel, href, wrap=False, **kwargs):
-        new_link = dict(href=href, **kwargs)
+    def add_rel(self, key, rel, thing, wrap):
+        self.o.setdefault(key, {})
 
         if wrap:
-            self.o['_links'].setdefault(rel, [])
+            self.o[key].setdefault(rel, [])
 
-        if not rel in self.o['_links']:
-            self.o['_links'][rel] = new_link
+        if rel not in self.o[key]:
+            self.o[key][rel] = thing
             return
 
-        existing_link = self.o['_links'][rel]
-        if isinstance(existing_link, list):
-            self.o['_links'][rel].append(new_link)
+        existing = self.o[key].get(rel)
+        if isinstance(existing, list):
+            existing.append(thing)
             return
 
-        self.o['_links'][rel] = [existing_link, new_link]
+        self.o[key][rel] = [existing, thing]
+
+    def add_link(self, rel, href, wrap=False, **kwargs):
+        new_link = dict(href=href, **kwargs)
+        self.add_rel('_links', rel, new_link, wrap)
+
+    def embed(self, rel, target, wrap=False):
+        new_embed = target.as_object()
+        self.add_rel('_embedded', rel, new_embed, wrap)
 
     def add_curie(self, name, href):
         self.draft.set_curie(self, name, href)
