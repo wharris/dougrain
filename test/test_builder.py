@@ -3,7 +3,7 @@
 # See the file license.txt for copying permission.
 
 import unittest
-from dougrain import Builder, Document
+from dougrain import Builder, Document, drafts
 
 class BuilderTests(unittest.TestCase):
     def setUp(self):
@@ -32,12 +32,9 @@ class BuilderTests(unittest.TestCase):
         self_link = doc.links['self']
         self.assertEqual(self_link.url(), self.uri)
         self.assertEqual(doc.url(), self.uri)
+        self.assertEqual(doc.links.keys(), ['self'])
 
     def testAddSimpleLink(self):
-        before = Document.from_object(self.builder.as_object(),
-                                      base_uri="http://localhost")
-        self.assertNotIn('item', before.links)
-
         self.builder.add_link('item', "/items/1")
 
         doc = Document.from_object(self.builder.as_object(),
@@ -90,6 +87,65 @@ class BuilderTests(unittest.TestCase):
         self.assertSequenceEqual([item_link.name for item_link in item_links],
                                  ['first', 'second', 'third'])
 
+    def testStartsWithNoCuries(self):
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        self.assertSequenceEqual(doc.curies.keys(), [])
+
+        self.assertEqual(doc.expand_curie('rel:spam'), "rel:spam")
+
+    def testAddCurie(self):
+        self.builder.add_curie('rel', "/rels/{rel}")
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        self.assertEqual(doc.expand_curie('rel:spam'),
+                         "http://localhost/rels/spam")
+
+    def testAddSecondCurie(self):
+        self.builder.add_curie('rel', "/rels/{rel}")
+        self.builder.add_curie('admin', "/rels/admin/{rel}")
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        self.assertEqual(doc.expand_curie('rel:spam'),
+                         "http://localhost/rels/spam")
+        self.assertEqual(doc.expand_curie('admin:eggs'),
+                         "http://localhost/rels/admin/eggs")
+
+    def testAddCurieDraft5(self):
+        self.builder = Builder(self.uri, draft=drafts.DRAFT_5)
+        self.builder.add_curie('rel', "/rels/{rel}")
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost",
+                                   draft=drafts.DRAFT_5)
+        self.assertEqual(doc.expand_curie('rel:spam'),
+                         "http://localhost/rels/spam")
+
+        curies = self.builder.as_object()['_links']['curies']
+        self.assertIsInstance(curies, list)
+
+    def testAddCurieDraft4(self):
+        self.builder = Builder(self.uri, draft=drafts.DRAFT_4)
+        self.builder.add_curie('rel', "/rels/{rel}")
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost",
+                                   draft=drafts.DRAFT_4)
+        self.assertEqual(doc.expand_curie('rel:spam'),
+                         "http://localhost/rels/spam")
+
+        curies = self.builder.as_object()['_links']['curies']
+        self.assertIsInstance(curies, list)
+
+    def testAddCurieDraft3(self):
+        self.builder = Builder(self.uri, draft=drafts.DRAFT_3)
+        self.builder.add_curie('rel', "/rels/{rel}")
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost",
+                                   draft=drafts.DRAFT_3)
+        self.assertEqual(doc.expand_curie('rel:spam'),
+                         "http://localhost/rels/spam")
+
+        curies = self.builder.as_object()['_links']['curie']
+        self.assertIsInstance(curies, dict)
 
 if __name__ == '__main__':
     unittest.main()

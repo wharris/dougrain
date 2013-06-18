@@ -1,9 +1,12 @@
 # Copyright (c) 2013 Will Harris
 # See the file license.txt for copying permission.
 
+from dougrain import drafts
+
 class Builder(object):
-    def __init__(self, uri):
+    def __init__(self, uri, draft=drafts.LATEST):
         self.o = {'_links': {'self': {'href': uri}}}
+        self.draft = draft.draft
 
     def set_property(self, name, value):
         self.o[name] = value
@@ -25,4 +28,6 @@ class Builder(object):
 
         self.o['_links'][rel] = [existing_link, new_link]
 
+    def add_curie(self, name, href):
+        self.draft.set_curie(self, name, href)
 
