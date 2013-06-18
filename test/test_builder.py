@@ -12,22 +12,12 @@ class BuilderTests(unittest.TestCase):
         self.builder = Builder(self.uri)
 
 
-class PropertyBuilderTests(BuilderTests):
+class InitialBuilderTests(BuilderTests):
     def testStartsWithNoProperties(self):
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
         self.assertEqual(doc.properties.keys(), [])
 
-    def testSetNewProperty(self):
-        self.builder.set_property('spam', "foo")
-
-        doc = Document.from_object(self.builder.as_object(),
-                                   base_uri="http://localhost")
-
-        self.assertEquals(doc.properties['spam'], "foo")
-
-
-class LinkBuilderTests(BuilderTests):
     def testAlreadyHasSelfLink(self):
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
@@ -38,6 +28,23 @@ class LinkBuilderTests(BuilderTests):
         self.assertEqual(doc.url(), self.uri)
         self.assertEqual(doc.links.keys(), ['self'])
 
+    def testStartsWithNoEmbeds(self):
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        self.assertEqual(doc.embedded.keys(), [])
+        
+
+class PropertyBuilderTests(BuilderTests):
+    def testSetNewProperty(self):
+        self.builder.set_property('spam', "foo")
+
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+
+        self.assertEquals(doc.properties['spam'], "foo")
+
+
+class LinkBuilderTests(BuilderTests):
     def testAddSimpleLink(self):
         self.builder.add_link('item', "/items/1")
 
