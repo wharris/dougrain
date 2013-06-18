@@ -87,6 +87,40 @@ class BuilderTests(unittest.TestCase):
         self.assertSequenceEqual([item_link.name for item_link in item_links],
                                  ['first', 'second', 'third'])
 
+    def testAddWrappedLink(self):
+        self.builder.add_link('item', '/items/1', wrap=True)
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        self.assertIn('item', doc.links)
+        
+        item_link = doc.links['item']
+        self.assertEqual(item_link.url(), doc.link("/items/1").url())
+
+    def testAddSecondWrappedLink(self):
+        self.builder.add_link('item', '/items/1', name='first', wrap=True)
+        self.builder.add_link('item', '/items/2', name='second', wrap=True)
+
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        item_links = doc.links['item']
+        self.assertSequenceEqual([item_link.name for item_link in item_links],
+                                 ['first', 'second'])
+
+    def testFirstUnwrappedLinkIsDict(self):
+        self.builder.add_link('item', '/items/1', wrap=False)
+        self.assertIsInstance(self.builder.as_object()['_links']['item'],
+                              dict)
+
+    def testFirstWrappedLinkIsList(self):
+        self.builder.add_link('item', '/items/1', wrap=True)
+        self.assertIsInstance(self.builder.as_object()['_links']['item'],
+                              list)
+
+    def testDefaultLinkIsNotWrapped(self):
+        self.builder.add_link('item', '/items/1')
+        self.assertIsInstance(self.builder.as_object()['_links']['item'],
+                              dict)
+
     def testStartsWithNoCuries(self):
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
@@ -146,6 +180,7 @@ class BuilderTests(unittest.TestCase):
 
         curies = self.builder.as_object()['_links']['curie']
         self.assertIsInstance(curies, dict)
+
 
 if __name__ == '__main__':
     unittest.main()

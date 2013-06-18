@@ -14,8 +14,11 @@ class Builder(object):
     def as_object(self):
         return self.o
 
-    def add_link(self, rel, href, **kwargs):
+    def add_link(self, rel, href, wrap=False, **kwargs):
         new_link = dict(href=href, **kwargs)
+
+        if wrap:
+            self.o['_links'].setdefault(rel, [])
 
         if not rel in self.o['_links']:
             self.o['_links'][rel] = new_link
