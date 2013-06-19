@@ -4,9 +4,12 @@
 from dougrain import drafts
 
 class Builder(object):
-    def __init__(self, uri, draft=drafts.LATEST):
-        self.o = {'_links': {'self': {'href': uri}}}
+    def __init__(self, href, draft=drafts.LATEST):
+        self.o = {'_links': {'self': {'href': href}}}
         self.draft = draft.draft
+
+    def url(self):
+        return self.o['_links']['self']['href']
 
     def set_property(self, name, value):
         self.o[name] = value
@@ -31,8 +34,12 @@ class Builder(object):
 
         self.o[key][rel] = [existing, thing]
 
-    def add_link(self, rel, href, wrap=False, **kwargs):
-        new_link = dict(href=href, **kwargs)
+    def add_link(self, rel, target, wrap=False, **kwargs):
+        if isinstance(target, str):
+            new_link = dict(href=target, **kwargs)
+        else:
+            new_link = dict(href=target.url(), **kwargs)
+
         self.add_rel('_links', rel, new_link, wrap)
 
     def embed(self, rel, target, wrap=False):

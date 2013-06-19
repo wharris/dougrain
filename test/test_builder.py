@@ -44,9 +44,15 @@ class PropertyBuilderTests(BuilderTests):
         self.assertEquals(doc.properties['spam'], "foo")
 
 
-class LinkBuilderTests(BuilderTests):
+class LinkBuilderTestsMixin(object):
+    def make_target(self, href):
+        raise NotImplemented
+
+    def add_link(self, rel, href, **kwargs):
+        self.builder.add_link(rel, self.make_target(href), **kwargs)
+
     def testAddSimpleLink(self):
-        self.builder.add_link('item', "/items/1")
+        self.add_link('item', "/items/1")
 
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
@@ -56,14 +62,14 @@ class LinkBuilderTests(BuilderTests):
         self.assertEqual(item_link.url(), doc.link("/items/1").url())
 
     def testAddLinkWithOptionalProperties(self):
-        self.builder.add_link('item', "/items/{item_id}",
-                              name='name',
-                              title='Title',
-                              type='application/hal+json',
-                              profile='/profiles/item',
-                              hreflang='en',
-                              deprecation='/deprecation/item',
-                              templated=True)
+        self.add_link('item', "/items/{item_id}",
+                      name='name',
+                      title='Title',
+                      type='application/hal+json',
+                      profile='/profiles/item',
+                      hreflang='en',
+                      deprecation='/deprecation/item',
+                      templated=True)
 
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
@@ -78,8 +84,8 @@ class LinkBuilderTests(BuilderTests):
         self.assertTrue(item_link.is_templated)
 
     def testAddSecondLink(self):
-        self.builder.add_link('item', '/items/1', name='first')
-        self.builder.add_link('item', '/items/2', name='second')
+        self.add_link('item', '/items/1', name='first')
+        self.add_link('item', '/items/2', name='second')
 
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
@@ -88,9 +94,9 @@ class LinkBuilderTests(BuilderTests):
                                  ['first', 'second'])
 
     def testAddThirdLink(self):
-        self.builder.add_link('item', '/items/1', name='first')
-        self.builder.add_link('item', '/items/2', name='second')
-        self.builder.add_link('item', '/items/3', name='third')
+        self.add_link('item', '/items/1', name='first')
+        self.add_link('item', '/items/2', name='second')
+        self.add_link('item', '/items/3', name='third')
 
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
@@ -99,7 +105,7 @@ class LinkBuilderTests(BuilderTests):
                                  ['first', 'second', 'third'])
 
     def testAddWrappedLink(self):
-        self.builder.add_link('item', '/items/1', wrap=True)
+        self.add_link('item', '/items/1', wrap=True)
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
         self.assertIn('item', doc.links)
@@ -108,8 +114,8 @@ class LinkBuilderTests(BuilderTests):
         self.assertEqual(item_link.url(), doc.link("/items/1").url())
 
     def testAddSecondWrappedLink(self):
-        self.builder.add_link('item', '/items/1', name='first', wrap=True)
-        self.builder.add_link('item', '/items/2', name='second', wrap=True)
+        self.add_link('item', '/items/1', name='first', wrap=True)
+        self.add_link('item', '/items/2', name='second', wrap=True)
 
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
@@ -118,17 +124,17 @@ class LinkBuilderTests(BuilderTests):
                                  ['first', 'second'])
 
     def testFirstUnwrappedLinkIsDict(self):
-        self.builder.add_link('item', '/items/1', wrap=False)
+        self.add_link('item', '/items/1', wrap=False)
         self.assertIsInstance(self.builder.as_object()['_links']['item'],
                               dict)
 
     def testFirstWrappedLinkIsList(self):
-        self.builder.add_link('item', '/items/1', wrap=True)
+        self.add_link('item', '/items/1', wrap=True)
         self.assertIsInstance(self.builder.as_object()['_links']['item'],
                               list)
 
     def testDefaultLinkIsNotWrapped(self):
-        self.builder.add_link('item', '/items/1')
+        self.add_link('item', '/items/1')
         self.assertIsInstance(self.builder.as_object()['_links']['item'],
                               dict)
 
@@ -138,6 +144,23 @@ class LinkBuilderTests(BuilderTests):
         self.assertSequenceEqual(doc.curies.keys(), [])
 
         self.assertEqual(doc.expand_curie('rel:spam'), "rel:spam")
+
+
+class HrefLinkBuilderTests(BuilderTests, LinkBuilderTestsMixin):
+    def make_target(self, href):
+        return href
+
+
+class BuilderLinkBuilderTests(BuilderTests, LinkBuilderTestsMixin):
+    def make_target(self, href):
+        return Builder(href)
+
+
+class DocumentLinkBuilderTests(BuilderTests, LinkBuilderTestsMixin):
+    def make_target(self, href):
+        doc = Document.empty("http://localhost/")
+        doc.add_link('self', href)
+        return doc
 
 
 class CurieBuilderTests(BuilderTests):
