@@ -11,11 +11,26 @@ class Builder(object):
     def url(self):
         return self.o['_links']['self']['href']
 
+    def as_object(self):
+        return self.o
+
+    def add_curie(self, name, href):
+        self.draft.set_curie(self, name, href)
+
     def set_property(self, name, value):
         self.o[name] = value
 
-    def as_object(self):
-        return self.o
+    def add_link(self, rel, target, wrap=False, **kwargs):
+        if isinstance(target, str):
+            new_link = dict(href=target, **kwargs)
+        else:
+            new_link = dict(href=target.url(), **kwargs)
+
+        self.add_rel('_links', rel, new_link, wrap)
+
+    def embed(self, rel, target, wrap=False):
+        new_embed = target.as_object()
+        self.add_rel('_embedded', rel, new_embed, wrap)
 
     def add_rel(self, key, rel, thing, wrap):
         self.o.setdefault(key, {})
@@ -33,19 +48,3 @@ class Builder(object):
             return
 
         self.o[key][rel] = [existing, thing]
-
-    def add_link(self, rel, target, wrap=False, **kwargs):
-        if isinstance(target, str):
-            new_link = dict(href=target, **kwargs)
-        else:
-            new_link = dict(href=target.url(), **kwargs)
-
-        self.add_rel('_links', rel, new_link, wrap)
-
-    def embed(self, rel, target, wrap=False):
-        new_embed = target.as_object()
-        self.add_rel('_embedded', rel, new_embed, wrap)
-
-    def add_curie(self, name, href):
-        self.draft.set_curie(self, name, href)
-
