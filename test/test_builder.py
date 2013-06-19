@@ -303,6 +303,95 @@ class EmbedBuilderDocumentTests(EmbedBuilderTests):
         return target_doc
 
 
+class ChainingBuilderTests(unittest.TestCase):
+    def testChainAfterSetProperty(self):
+        obj = (Builder("/item/1")
+               .set_property("name", "Thing #1")
+               .set_property("chained", True)).as_object()
+
+        doc = Document.from_object(obj, base_uri="http://localhost/")
+
+        self.assertTrue(doc.properties['chained'])
+        
+    def testChainAfterAddLink(self):
+        obj = (Builder("/item/1")
+               .add_link("next", "/item/2")
+               .set_property("chained", True)).as_object()
+
+        doc = Document.from_object(obj, base_uri="http://localhost/")
+
+        self.assertTrue(doc.properties['chained'])
+        
+    def testChainAfterAddCurie(self):
+        obj = (Builder("/item/1")
+               .add_curie("rel", "/rels/{rel}")
+               .set_property("chained", True)).as_object()
+
+        doc = Document.from_object(obj, base_uri="http://localhost/")
+
+        self.assertTrue(doc.properties['chained'])
+
+    def testChainAfterEmbed(self):
+        target = Builder("/item/2")
+        obj = (Builder("/item/1")
+               .embed("next", target)
+               .set_property("chained", True)).as_object()
+
+        doc = Document.from_object(obj, base_uri="http://localhost/")
+
+        self.assertTrue(doc.properties['chained'])
+
+    def testBuildDocument(self):
+        obj = (Builder("/products/254-rocket-skates")
+               .add_curie('api', '/rels/{rel}')
+               .set_property('name', "Rocket Skates")
+               .set_property(
+                   'description',
+                   "Endorsed by top athletes, these affordable ...")
+               .set_property('ean', "55-5555-5555-X")
+               .add_link('api:reviews', "/products/254-rocket-skates/reviews")
+               .embed('api:pictures',
+                      Builder("/products/254-rocket-skates/pictures/")
+                      .set_property('count', 2)
+                      .add_link('item',
+                                "/products/254-rocket-skates/pictures/1")
+                      .add_link('item',
+                                "/products/254-rocket-skates/pictures/2")
+                      .embed('item',
+                             Builder("/products/254-rocket-skates/pictures/1")
+                             .set_property('count', 1)
+                             .add_link('api:subject',
+                                       "/products/254-rocket-skates")
+                             .add_link('item', "/images/48184234")
+                             .embed('item',
+                                    Builder("/images/48184234")
+                                    .set_property('width', 2048)
+                                    .set_property('height', 1536)
+                                    .add_link(
+                                        'enclosure',
+                                        "http://images.localhost/48184234.png",
+                                        type="image/jpeg"))))
+               .add_link('api:pictures',
+                         "/products/254-rocket-skates/pictures/")
+               .add_link('api:price', "/prices/537461",
+                     title="$24.95 + $1.00 delivery")
+               .embed('api:price',
+                      Builder("/prices/537461")
+                      .set_property("currency_code", "USD")
+                      .set_property("currency_symbol", "$")
+                      .set_property("advertised_price", "24.95")
+                      .set_property("delivery_price", "1.00")
+                      .set_property("total_price", "25.95"))
+              ).as_object()
+
+        doc = Document.from_object(obj, base_uri="http://localhost/")
+        self.assertEqual(doc.properties['name'], "Rocket Skates")
+        self.assertEqual(doc.links['/rels/reviews'].url(),
+                         "http://localhost/products/254-rocket-skates/reviews")
+        item = doc.embedded['/rels/pictures'].embedded['item'].embedded['item']
+        self.assertEquals(item.properties['width'], 2048)
+        self.assertEquals(item.links['enclosure'].type, "image/jpeg")
+
 
 if __name__ == '__main__':
     unittest.main()
