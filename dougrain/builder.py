@@ -34,6 +34,10 @@ class Builder(object):
     def embed(self, rel, target, wrap=False):
         new_embed = target.as_object()
         self.add_rel('_embedded', rel, new_embed, wrap)
+
+        if self.draft.automatic_link:
+            self.add_link(rel, target, wrap)
+
         return self
 
     def add_rel(self, key, rel, thing, wrap):

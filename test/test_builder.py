@@ -291,6 +291,85 @@ class EmbedBuilderTests(BuilderTests):
         names = [embedded.properties['name'] for embedded in item_embeds]
         self.assertSequenceEqual(names, ['first', 'second', 'third'])
 
+    def testEmbedAlsoAddsLinkWithDraft5(self):
+        self.builder = Builder(self.uri, draft=drafts.DRAFT_5)
+        self.builder.embed('item', self.make_target('first'))
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        item_links = doc.links['item']
+        urls = [link.url() for link in item_links]
+        item_embeds = doc.embedded['item']
+        expected_urls = [embedded.url() for embedded in item_embeds]
+        self.assertSequenceEqual(urls, expected_urls)
+
+    def testEmbedDoesNotAddLinkWithDraft4(self):
+        self.builder = Builder(self.uri, draft=drafts.DRAFT_4)
+        self.builder.embed('item', self.make_target('first'))
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        item_links = doc.links.get('item', [])
+        urls = [link.url() for link in item_links]
+        item_embeds = doc.embedded['item']
+        expected_urls = []
+        self.assertSequenceEqual(urls, expected_urls)
+
+    def testEmbedDoesNotAddLinkWithDraft3(self):
+        self.builder = Builder(self.uri, draft=drafts.DRAFT_3)
+        self.builder.embed('item', self.make_target('first'))
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        item_links = doc.links.get('item', [])
+        urls = [link.url() for link in item_links]
+        item_embeds = doc.embedded['item']
+        expected_urls = []
+        self.assertSequenceEqual(urls, expected_urls)
+
+    def testEmbedAddsUnnecessaryLinkWithDraft5(self):
+        self.builder = Builder(self.uri, draft=drafts.DRAFT_5)
+        target = self.make_target('first')
+
+        self.builder.add_link('item', target, wrap=True)
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        urls_before_embed = [link.url() for link in doc.links['item']]
+
+        self.builder.embed('item', target, wrap=True)
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        urls_after_embed = [link.url() for link in doc.links['item']]
+
+        item_embeds = doc.embedded['item']
+        embedded_urls = [embedded.url() for embedded in item_embeds]
+        expected_urls = urls_before_embed + embedded_urls
+        self.assertSequenceEqual(urls_after_embed, expected_urls)
+
+    def testAutomaticLinkIsNotWrappedDefault(self):
+        target = self.make_target("first")
+        self.builder.embed('item', target)
+
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        self.assertIsInstance(self.builder.as_object()['_links']['item'],
+                              dict)
+
+    def testAutomaticLinkIsNotWrappedWithUnwrappedEmbed(self):
+        target = self.make_target("first")
+        self.builder.embed('item', target, wrap=False)
+
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        self.assertIsInstance(self.builder.as_object()['_links']['item'],
+                              dict)
+
+    def testAutomaticLinkIsWrappedWithWrappedEmbed(self):
+        target = self.make_target("first")
+        self.builder.embed('item', target, wrap=True)
+
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhost")
+        self.assertIsInstance(self.builder.as_object()['_links']['item'],
+                              list)
+
 
 class EmbedBuilderDocumentTests(EmbedBuilderTests):
     def make_target(self, name):
