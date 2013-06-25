@@ -151,6 +151,11 @@ class HrefLinkBuilderTests(BuilderTests, LinkBuilderTestsMixin):
         return href
 
 
+class UnicodeHrefLinkBuilderTests(BuilderTests, LinkBuilderTestsMixin):
+    def make_target(self, href):
+        return unicode(href)
+
+
 class BuilderLinkBuilderTests(BuilderTests, LinkBuilderTestsMixin):
     def make_target(self, href):
         return Builder(href)

@@ -23,7 +23,7 @@ class Builder(object):
         return self
 
     def add_link(self, rel, target, wrap=False, **kwargs):
-        if isinstance(target, str):
+        if isinstance(target, str) or isinstance(target, unicode):
             new_link = dict(href=target, **kwargs)
         else:
             new_link = dict(href=target.url(), **kwargs)
