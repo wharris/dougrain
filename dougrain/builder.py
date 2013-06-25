@@ -4,8 +4,8 @@
 from dougrain import drafts
 
 class Builder(object):
-    def __init__(self, href, draft=drafts.LATEST):
-        self.o = {'_links': {'self': {'href': href}}}
+    def __init__(self, href, draft=drafts.LATEST, **kwargs):
+        self.o = {'_links': {'self': dict(href=href, **kwargs)}}
         self.draft = draft.draft
 
     def url(self):

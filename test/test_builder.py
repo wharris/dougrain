@@ -32,7 +32,27 @@ class InitialBuilderTests(BuilderTests):
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
         self.assertEqual(doc.embedded.keys(), [])
-        
+
+    def testAddsKeywordArgumentsToSelfLink(self):
+        self.builder = Builder(self.uri,
+                               name="test",
+                               title="Test Document",
+                               type="application/hal+json",
+                               profile="/profiles/root",
+                               hreflang="en-GB",
+                               deprecation=False,
+                               templated=False)
+        doc = Document.from_object(self.builder.as_object(),
+                                   base_uri="http://localhsot")
+        self_link = doc.links['self']
+        self.assertEqual(self_link.href, self.uri)
+        self.assertEqual(self_link.name, "test")
+        self.assertEqual(self_link.title, "Test Document")
+        self.assertEqual(self_link.type, "application/hal+json")
+        self.assertEqual(self_link.profile, "/profiles/root")
+        self.assertFalse(self_link.deprecation)
+        self.assertFalse(self_link.is_templated)
+
 
 class PropertyBuilderTests(BuilderTests):
     def testSetNewProperty(self):
