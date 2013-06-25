@@ -2,6 +2,7 @@
 # See the file license.txt for copying permission.
 
 from dougrain import drafts
+from dougrain import link
 
 class Builder(object):
     def __init__(self, href, draft=drafts.LATEST, **kwargs):
@@ -13,6 +14,9 @@ class Builder(object):
 
     def as_object(self):
         return self.o
+
+    def as_link(self):
+        return link.Link(self.o['_links']['self'], None)
 
     def add_curie(self, name, href):
         self.draft.set_curie(self, name, href)

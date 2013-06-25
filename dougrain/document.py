@@ -436,6 +436,9 @@ class Document(object):
         If ``target`` is a ``Document`` object, ``target``'s ``self`` link is
         added to this document and the keyword arguments are ignored.
 
+        If ``target`` is a ``Builder`` object, ``target``'s ``self`` link is 
+        added to this document and the keyword arguments are ignored.
+
         Arguments:
 
         - ``rel``: a string specifying the link relationship type of the link.

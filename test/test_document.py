@@ -754,6 +754,13 @@ class AddDocumentLinkTests(AddLinkStringTests):
 
 #
 
+class AddBuilderLinkTests(AddLinkStringTests):
+    def add_link(self, doc, rel, href, wrap=False, **kwargs):
+        target = dougrain.Builder(href, **kwargs)
+        doc.add_link(rel, target, wrap=wrap)
+
+#
+
 class DeleteLinkTests(unittest.TestCase):
     def testDeleteOnlyLinkForRel(self):
         initial = {
