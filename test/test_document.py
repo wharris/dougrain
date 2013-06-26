@@ -5,7 +5,6 @@
 import unittest
 import dougrain
 
-#
 
 class ParseSimpleTestMixin(object):
     def setUp(self):
@@ -30,7 +29,9 @@ class ParseSimpleTestDraft4(ParseSimpleTestMixin, unittest.TestCase):
 class ParseSimpleTestDraft3(ParseSimpleTestMixin, unittest.TestCase):
     DRAFT = dougrain.drafts.DRAFT_3
 
+
 #
+
 
 class ParseLinksTestMixin(object):
     OBJECT = {
@@ -102,7 +103,9 @@ class ParseLinksTestDraft4(ParseLinksTestMixin, unittest.TestCase):
 class ParseLinksTestDraft3(ParseLinksTestMixin, unittest.TestCase):
     DRAFT = dougrain.drafts.DRAFT_3
 
+
 #
+
 
 class ParseEmbeddedObjectsTestMixin(object):
     def setUp(self):
@@ -201,7 +204,9 @@ class ParseEmbeddedObjectsTestDraft3(ParseEmbeddedObjectsTestMixin,
     DRAFT = dougrain.drafts.DRAFT_5
     OBJECT = ParseEmbeddedObjectsTestDraft4.OBJECT
 
+
 #
+
 
 class CurieExpansionTestMixin(object):
 
@@ -372,7 +377,9 @@ class CurieExpansionTestDraft3(CurieExpansionTestMixin, unittest.TestCase):
         }
     }
 
+
 #
+
 
 class RelsTestMixin(object):
     def setUp(self):
@@ -401,11 +408,12 @@ class RelsTestMixin(object):
     def testEmbeddedRelOverridesLinkRelWithSameHref(self):
         dept_role = self.doc.expand_curie('role:dept')
 
+        filter_url = "http://localhost/departments/2"
         dept_2_link = [link for link in self.doc.links['role:dept']
-                       if link.url() == "http://localhost/departments/2"][0]
+                       if link.url() == filter_url][0]
         dept_2_embedded = [link for link in self.doc.embedded['role:dept']
-                           if link.url() == "http://localhost/departments/2"][0]
-        
+                           if link.url() == filter_url][0]
+
         departments = self.doc.rels[dept_role]
         self.assertTrue(dept_2_embedded in departments)
         self.assertFalse(dept_2_link in departments)
@@ -413,7 +421,7 @@ class RelsTestMixin(object):
         urls = [x.url() for x in departments]
         urls.sort()
         self.assertEquals(
-            ["http://localhost/departments/%d" % x for x in [1,2,3]],
+            ["http://localhost/departments/%d" % x for x in [1, 2, 3]],
             urls)
 
 
@@ -451,7 +459,7 @@ class RelsTestDraft5(RelsTestMixin, unittest.TestCase):
             },
             'role:application': {
                 '_links': {
-                    'self': { 'href': "/apps/2" }
+                    'self': {'href': "/apps/2"}
                 }
             },
             'role:dept': [
@@ -464,7 +472,7 @@ class RelsTestDraft5(RelsTestMixin, unittest.TestCase):
                 },
                 {
                     '_links': {
-                        'self': { 'href': "/departments/3" }
+                        'self': {'href': "/departments/3"}
                     }
                 }
             ]
@@ -511,7 +519,7 @@ class RelsTestDraft3(RelsTestMixin, unittest.TestCase):
             },
             'role:application': {
                 '_links': {
-                    'self': { 'href': "/apps/2" }
+                    'self': {'href': "/apps/2"}
                 }
             },
             'role:dept': [
@@ -524,14 +532,16 @@ class RelsTestDraft3(RelsTestMixin, unittest.TestCase):
                 },
                 {
                     '_links': {
-                        'self': { 'href': "/departments/3" }
+                        'self': {'href': "/departments/3"}
                     }
                 }
             ]
         }
     }
 
+
 #
+
 
 class SerializeTestsMixin(object):
     def checkEqualObjects(self, obj):
@@ -581,7 +591,9 @@ class SerializeTestsDraft3(SerializeTestsMixin, unittest.TestCase):
     RELS_CASE = RelsTestDraft3.OBJECT
     CURIES_CASE = CurieExpansionTestDraft3.OBJECT
 
+
 #
+
 
 class AttributeMutationTests(unittest.TestCase):
     def testSetAttributeAddsAttribute(self):
@@ -621,7 +633,9 @@ class AttributeMutationTests(unittest.TestCase):
 
         self.assertEquals(target_doc.as_object(), doc.as_object())
 
+
 #
+
 
 class AddLinkStringTests(unittest.TestCase):
     def add_link(self, doc, rel, href, **kwargs):
@@ -736,14 +750,18 @@ class AddLinkStringTests(unittest.TestCase):
 
         self.assertEquals(target, doc.as_object())
 
+
 #
+
 
 class AddObjectLinkTests(AddLinkStringTests):
     def add_link(self, doc, rel, href, wrap=False, **kwargs):
         link = doc.link(href, **kwargs)
         doc.add_link(rel, link, wrap=wrap)
 
+
 #
+
 
 class AddDocumentLinkTests(AddLinkStringTests):
     def add_link(self, doc, rel, href, wrap=False, **kwargs):
@@ -754,12 +772,15 @@ class AddDocumentLinkTests(AddLinkStringTests):
 
 #
 
+
 class AddBuilderLinkTests(AddLinkStringTests):
     def add_link(self, doc, rel, href, wrap=False, **kwargs):
         target = dougrain.Builder(href, **kwargs)
         doc.add_link(rel, target, wrap=wrap)
 
+
 #
+
 
 class DeleteLinkTests(unittest.TestCase):
     def testDeleteOnlyLinkForRel(self):
@@ -850,7 +871,7 @@ class DeleteLinkTests(unittest.TestCase):
         doc.delete_link("child", "http://localhost/2/3")
         self.assertEquals({'href': "http://localhost/2/2"},
                           doc.as_object()['_links']['child'])
-        
+
         doc.delete_link("child", "http://localhost/2/2")
         self.assertFalse("child" in doc.as_object()['_links'])
 
@@ -931,7 +952,9 @@ class DeleteLinkTests(unittest.TestCase):
 
         self.assertEquals(target, doc)
 
+
 #
+
 
 class EmbedTestMixin(object):
     OBJECT_WITH_SELF = {
@@ -1053,14 +1076,17 @@ class EmbedTestDraft3(EmbedTestMixin, unittest.TestCase):
         }
     }
 
+
 #
+
 
 class TestIteration(unittest.TestCase):
     def testASingleDocumentCanBeIterated(self):
         for draft in (dougrain.drafts.DRAFT_3,
                       dougrain.drafts.DRAFT_4,
                       dougrain.drafts.DRAFT_5):
-            the_doc = dougrain.Document.empty("http://localhost/1", draft=draft)
+            the_doc = dougrain.Document.empty("http://localhost/1",
+                                              draft=draft)
             the_doc.add_link('self', "http://localhost/1")
 
             count = 0
@@ -1070,7 +1096,9 @@ class TestIteration(unittest.TestCase):
 
             self.assertEquals(1, count)
 
+
 #
+
 
 class DeleteEmbeddedTestsMixin(object):
     EMBEDDED_KEY = dougrain.document.EMBEDDED_KEY
@@ -1154,7 +1182,7 @@ class DeleteEmbeddedTestsMixin(object):
         doc.delete_embedded("child", "http://localhost/2/3")
         self.assertEquals(doc3.as_object().get(self.EMBEDDED_KEY),
                           doc.as_object().get(self.EMBEDDED_KEY))
-        
+
         doc.delete_embedded("child", "http://localhost/2/2")
         self.assertEquals(doc4.as_object().get(self.EMBEDDED_KEY),
                           doc.as_object().get(self.EMBEDDED_KEY))
@@ -1236,7 +1264,9 @@ class DeleteEmbeddedTestsDraft3(DeleteEmbeddedTestsMixin, unittest.TestCase):
     DRAFT = dougrain.drafts.DRAFT_3
     assertAutomaticLink = unittest.TestCase.assertFalse
 
+
 #
+
 
 class CurieMutationTestMixin(object):
     def make_doc(self, href, *args, **kwargs):
@@ -1286,11 +1316,13 @@ class CurieMutationTestDraft5(CurieMutationTestMixin, unittest.TestCase):
     def testCurieJSONHasCorrectType(self):
         self.assertEquals(type(self.doc.as_object()['_links']['curies']), list)
 
+
 class CurieMutationTestDraft4(CurieMutationTestMixin, unittest.TestCase):
     DRAFT = dougrain.drafts.DRAFT_5
 
     def testCurieJSONHasCorrectType(self):
         self.assertEquals(type(self.doc.as_object()['_links']['curies']), list)
+
 
 class CurieMutationTestDraft3(CurieMutationTestMixin, unittest.TestCase):
     DRAFT = dougrain.drafts.DRAFT_3
@@ -1298,7 +1330,9 @@ class CurieMutationTestDraft3(CurieMutationTestMixin, unittest.TestCase):
     def testCurieJSONHasCorrectType(self):
         self.assertEquals(type(self.doc.as_object()['_links']['curie']), dict)
 
+
 #
+
 
 class CurieHidingTests(unittest.TestCase):
     def testCuriesAreNotLinksDraft5(self):
@@ -1390,7 +1424,7 @@ class CurieHidingTests(unittest.TestCase):
 
         self.assertFalse('curies' in doc.links)
         self.assertTrue('curie' in doc.links)
-                
+
     def testDraft3CuriesAreLinksInDraft4Document(self):
         doc = dougrain.Document({
             '_links': {
@@ -1412,8 +1446,10 @@ class CurieHidingTests(unittest.TestCase):
 
         self.assertFalse('curies' in doc.links)
         self.assertTrue('curie' in doc.links)
-                
+
+
 #
+
 
 class LinkCanonicalizationTestsMixin(object):
     def setUp(self):
@@ -1437,7 +1473,7 @@ class LinkCanonicalizationTestsMixin(object):
         self.doc.add_link("http://localhost/roles/app", "/apps/3")
 
         self.assertEquals(["/apps/1", "/apps/2", "/apps/3"],
-                           [link.href for link in self.doc.links["role:app"]])
+                          [link.href for link in self.doc.links["role:app"]])
 
     def testMergesLinkswhenLoading(self):
         links = dict(self.CURIES)
@@ -1453,9 +1489,10 @@ class LinkCanonicalizationTestsMixin(object):
             base_uri="http://localhost/1",
             draft=self.DRAFT)
         self.doc.set_curie("role", "/roles/{rel}")
-        
-        self.assertEquals(set(["/apps/1", "/apps/2", "/apps/3"]),
-                          set(link.href for link in self.doc.links["role:app"]))
+
+        self.assertEquals(
+            set(["/apps/1", "/apps/2", "/apps/3"]),
+            set(link.href for link in self.doc.links["role:app"]))
 
 
 class LinkCanonicalizationTestsDraft5(LinkCanonicalizationTestsMixin,
@@ -1489,7 +1526,9 @@ class LinkCanonicalizationTestsDraft3(LinkCanonicalizationTestsMixin,
         }
     }
 
+
 #
+
 
 class EmbeddedCanonicalizationTestMixin(object):
     def setUp(self):
@@ -1519,8 +1558,8 @@ class EmbeddedCanonicalizationTestMixin(object):
         self.doc.embed("http://localhost/roles/app", self.new_doc("/apps/3"))
 
         self.assertEquals(["/apps/1", "/apps/2", "/apps/3"],
-                           [embedded.properties['name']
-                            for embedded in self.doc.embedded["role:app"]])
+                          [embedded.properties['name']
+                           for embedded in self.doc.embedded["role:app"]])
 
 
 class EmbeddedCanonicalizationTestDraft5(EmbeddedCanonicalizationTestMixin,
@@ -1537,7 +1576,9 @@ class EmbeddedCanonicalizationTestDraft3(EmbeddedCanonicalizationTestMixin,
                                          unittest.TestCase):
     DRAFT = dougrain.drafts.DRAFT_3
 
+
 #
+
 
 class EdgeCasesTests(unittest.TestCase):
     def testUrlOfDocumentWithMultipleSelfLinksFromFirstSelfLink(self):
@@ -1586,7 +1627,9 @@ class EdgeCasesTests(unittest.TestCase):
 
         self.assertFalse('rel:me' in doc.embedded)
 
+
 #
+
 
 class ExplicitDraftTests(unittest.TestCase):
     def testDraft3DocumentHasOldCurieBehaviour(self):
@@ -1637,7 +1680,9 @@ class ExplicitDraftTests(unittest.TestCase):
         curie = links['curies']
         self.assertTrue(isinstance(curie, list))
 
+
 #
+
 
 class DraftDetectionTests(unittest.TestCase):
     def testDocumentsWithCurieAreDraft3(self):

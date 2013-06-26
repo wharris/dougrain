@@ -5,6 +5,7 @@
 import unittest
 from dougrain import Builder, Document, drafts
 
+
 class BuilderTests(unittest.TestCase):
     def setUp(self):
         self.uri = "http://localhost/%s/%s" % (self.__class__.__name__,
@@ -22,7 +23,7 @@ class InitialBuilderTests(BuilderTests):
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
         self.assertIn('self', doc.links)
-        
+
         self_link = doc.links['self']
         self.assertEqual(self_link.url(), self.uri)
         self.assertEqual(doc.url(), self.uri)
@@ -77,7 +78,7 @@ class LinkBuilderTestsMixin(object):
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
         self.assertIn('item', doc.links)
-        
+
         item_link = doc.links['item']
         self.assertEqual(item_link.url(), doc.link("/items/1").url())
 
@@ -94,7 +95,8 @@ class LinkBuilderTestsMixin(object):
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
         item_link = doc.links['item']
-        self.assertEqual(item_link.url(item_id='1'), "http://localhost/items/1")
+        self.assertEqual(item_link.url(item_id='1'),
+                         "http://localhost/items/1")
         self.assertEqual(item_link.name, 'name')
         self.assertEqual(item_link.title, 'Title')
         self.assertEqual(item_link.type, 'application/hal+json')
@@ -129,7 +131,7 @@ class LinkBuilderTestsMixin(object):
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
         self.assertIn('item', doc.links)
-        
+
         item_link = doc.links['item']
         self.assertEqual(item_link.url(), doc.link("/items/1").url())
 
@@ -416,7 +418,7 @@ class ChainingBuilderTests(unittest.TestCase):
         doc = Document.from_object(obj, base_uri="http://localhost/")
 
         self.assertTrue(doc.properties['chained'])
-        
+
     def testChainAfterAddLink(self):
         obj = (Builder("/item/1")
                .add_link("next", "/item/2")
@@ -425,7 +427,7 @@ class ChainingBuilderTests(unittest.TestCase):
         doc = Document.from_object(obj, base_uri="http://localhost/")
 
         self.assertTrue(doc.properties['chained'])
-        
+
     def testChainAfterAddCurie(self):
         obj = (Builder("/item/1")
                .add_curie("rel", "/rels/{rel}")
@@ -478,7 +480,7 @@ class ChainingBuilderTests(unittest.TestCase):
                .add_link('api:pictures',
                          "/products/254-rocket-skates/pictures/")
                .add_link('api:price', "/prices/537461",
-                     title="$24.95 + $1.00 delivery")
+                         title="$24.95 + $1.00 delivery")
                .embed('api:price',
                       Builder("/prices/537461")
                       .set_property("currency_code", "USD")
@@ -486,7 +488,7 @@ class ChainingBuilderTests(unittest.TestCase):
                       .set_property("advertised_price", "24.95")
                       .set_property("delivery_price", "1.00")
                       .set_property("total_price", "25.95"))
-              ).as_object()
+               ).as_object()
 
         doc = Document.from_object(obj, base_uri="http://localhost/")
         self.assertEqual(doc.properties['name'], "Rocket Skates")

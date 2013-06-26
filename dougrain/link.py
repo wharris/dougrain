@@ -5,6 +5,7 @@ import urlparse
 import re
 import uritemplate
 
+
 def extract_variables(href):
     """Return a list of variable names used in a URI template."""
 
@@ -71,7 +72,7 @@ class Link(object):
         if 'deprecation' in json_object:
             self.deprecation = json_object['deprecation']
 
-        self.is_templated = self.o.get('templated', False) == True
+        self.is_templated = self.o.get('templated', False) is True
 
         if self.is_templated:
             self.variables = extract_variables(self.href)
@@ -101,10 +102,10 @@ class Link(object):
     def as_object(self):
         """Returns a dictionary representing the HAL JSON link."""
         return self.o
-    
+
     def as_link(self):
         """Returns a ``Link`` to the same resource as this link.
-        
+
         This method is trivial, but is provided for symmetry with ``Document``.
 
         """
@@ -142,4 +143,3 @@ class Link(object):
     def __eq__(self, other):
         return (isinstance(other, Link) and
                 self.as_object() == other.as_object())
-

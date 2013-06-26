@@ -57,7 +57,7 @@ class Draft4(Draft3):
         # one.
         doc.o.setdefault(LINKS_KEY, {}).setdefault(self.curies_rel, [])
         doc.o[LINKS_KEY][self.curies_rel].append(
-            {'href':href, 'name':name, 'templated':True})
+            {'href': href, 'name': name, 'templated': True})
 
 
 class Draft5(Draft4):
@@ -78,7 +78,7 @@ class Draft5(Draft4):
 
 class DraftIdentifier(object):
     """Identifies HAL draft level of a JSON document.
-    
+
     When created with an existing JSON object, the document guesses the
     draft version based on the presence of a link with a relation type of
     'curie' or 'curies'.
@@ -107,7 +107,7 @@ class FixedDraftIdentifier(object):
     def detect(self, obj):
         """Identify the HAL draft level of obj as this instance's draft."""
         return self.draft
-    
+
     def __eq__(self, other):
         if isinstance(other, FixedDraftIdentifier):
             return other.draft == self.draft
@@ -124,6 +124,3 @@ DRAFT_4 = FixedDraftIdentifier(Draft4())
 DRAFT_5 = FixedDraftIdentifier(Draft5())
 LATEST = DRAFT_5
 AUTO = DraftIdentifier()
-
-
-

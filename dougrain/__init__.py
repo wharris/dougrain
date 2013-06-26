@@ -4,4 +4,3 @@
 from document import Document
 from builder import Builder
 import drafts
-

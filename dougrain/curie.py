@@ -4,6 +4,7 @@
 import urlparse
 from random import choice
 
+
 class CurieCollection(dict):
     def __init__(self, expansions_cache={}):
         # The default value of expansions_cache is not a mistake. The

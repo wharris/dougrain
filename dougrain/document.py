@@ -15,13 +15,14 @@ from drafts import AUTO
 from drafts import LINKS_KEY
 from drafts import EMBEDDED_KEY
 
+
 class CanonicalRels(UserDict.DictMixin, object):
     """Smart querying of link relationship types and link relationships.
 
     A ``CanonicalRels`` instance is a read-only dictionary-like object that
     provides smart retrieval and de-duplication by link relationship type. It
     is used to make access to links and embedded resources more convenient.
-    
+
     In addition to well-know link relationship types (eg. ``"self"``), keys can
     be custom link relationship types represented as URIs (eg.
     ``"http://example.com/rels/comments"``), or as URI references (eg.
@@ -43,7 +44,7 @@ class CanonicalRels(UserDict.DictMixin, object):
     """
     def __init__(self, rels, curies, base_uri, item_filter=lambda _: True):
         """Create a ``CanonicalRels`` instance.
-        
+
         Arguments:
 
         - ``rels``:        the relationships to be queried. ``rels`` should be
@@ -119,7 +120,7 @@ class CanonicalRels(UserDict.DictMixin, object):
     def __contains__(self, key):
         """Returns ``True`` if there are any link relationships for for
         ``self[key].``
-        
+
         """
         return self.canonical_key(key) in self.rels
 
@@ -139,7 +140,7 @@ class Relationships(UserDict.DictMixin, object):
     Relationships, that is links and embedded resources, are presented as a
     dictionary-like object mapping the full URI of the link relationship type
     to a list of relationships.
-    
+
     If there are both embedded resources and links for the same link relation
     type, the embedded resources will appear before the links. Otherwise,
     relationships are presented in the order they appear in their respective
@@ -148,7 +149,7 @@ class Relationships(UserDict.DictMixin, object):
     Relationships are de-duplicated by their URL, as defined by their ``self``
     link in the case of embedded resources and by their ``href`` in the case of
     links. Only the first relationship with that URL will be included.
-    
+
     """
 
     def __init__(self, links, embedded, curies, base_uri):
@@ -170,6 +171,7 @@ class Relationships(UserDict.DictMixin, object):
         rels = itertools.chain(embedded.iteritems(), links.iteritems())
 
         existing_urls = set()
+
         def item_filter(item):
             url = item.url()
             if url is not None and url in existing_urls:
@@ -177,7 +179,10 @@ class Relationships(UserDict.DictMixin, object):
             existing_urls.add(item.url())
             return True
 
-        self.canonical_rels = CanonicalRels(rels, curies, base_uri, item_filter)
+        self.canonical_rels = CanonicalRels(rels,
+                                            curies,
+                                            base_uri,
+                                            item_filter)
 
     def __getitem__(self, key):
         value = self.canonical_rels.__getitem__(key)
@@ -187,14 +192,14 @@ class Relationships(UserDict.DictMixin, object):
 
     def keys(self):
         return self.canonical_rels.keys()
-         
+
 
 def mutator(*cache_names):
     """Decorator for ``Document`` methods that change the document.
 
     This decorator ensures that the object's caches are kept in sync
     when changes are made.
-    
+
     """
     def deco(fn):
         @wraps(fn)
@@ -226,16 +231,17 @@ class Document(object):
                       excluding ``_links`` and ``_embedded``. ``properties``
                       should be treated as read-only.
     - ``links``: ``dict`` containing the document's links, excluding
-                 ``curies``. Each link relationship type is mapped to a ``Link``
-                 instance or a list of ``Link`` instances. ``links`` should be
-                 treated as read-only.
+                 ``curies``. Each link relationship type is mapped to a
+                 ``Link`` instance or a list of ``Link`` instances. ``links``
+                 should be treated as read-only.
     - ``embedded``: dictionary containing the document's embedded resources.
                     Each link relationship type is mapped to a ``Document``
                     instance.
     - ``rels``: a ``Relationships`` instance holding a merged view of the
                 relationships from the document.
     - ``draft``: a ``Draft`` instance that selects the version of the spec to
-                 which the document should conform. Defaults to ``drafts.AUTO``.
+                 which the document should conform. Defaults to
+                 ``drafts.AUTO``.
 
     """
     def __init__(self, o, base_uri, parent_curies=None, draft=AUTO):
@@ -343,7 +349,7 @@ class Document(object):
         This method returns the ``href`` of the document's ``self`` link if it
         has one, or ``None`` if the document lacks a ``self`` link, or the
         ``href`` of the document's first ``self`` link if it has more than one.
-        
+
         """
         if not 'self' in self.links:
             return None
@@ -421,7 +427,7 @@ class Document(object):
 
         Calling code should use this method to add links instead of
         modifying ``links`` directly.
-        
+
         This method adds a link to the given ``target`` to the document with
         the given ``rel``. If one or more links are already present for that
         link relationship type, the new link will be added to the existing
@@ -436,7 +442,7 @@ class Document(object):
         If ``target`` is a ``Document`` object, ``target``'s ``self`` link is
         added to this document and the keyword arguments are ignored.
 
-        If ``target`` is a ``Builder`` object, ``target``'s ``self`` link is 
+        If ``target`` is a ``Builder`` object, ``target``'s ``self`` link is
         added to this document and the keyword arguments are ignored.
 
         Arguments:
@@ -457,7 +463,7 @@ class Document(object):
             link = self.link(target, **kwargs)
 
         links = self.o.setdefault(LINKS_KEY, {})
-        
+
         new_link = link.as_object()
         collected_links = CanonicalRels(links, self.curies, self.base_uri)
         if rel not in collected_links:
@@ -545,8 +551,8 @@ class Document(object):
                                relative URLs in the document.
         - ``parent_curies``: optional ``CurieCollection`` instance holding the
                              CURIEs of the parent document in which the new
-                             document is to be embedded. Calling code should not
-                             normally provide this argument.
+                             document is to be embedded. Calling code should
+                             not normally provide this argument.
         - ``draft``: a ``Draft`` instance that selects the version of the spec
                      to which the document should conform. Defaults to
                      ``drafts.AUTO``.
@@ -596,7 +602,7 @@ class Document(object):
 
         Calling code should use this method to add embedded resources instead
         of modifying ``embedded`` directly.
-        
+
         This method embeds the given document in this document with the given
         ``rel``. If one or more documents have already been embedded for that
         ``rel``, the new document will be embedded in addition to those
@@ -608,7 +614,9 @@ class Document(object):
             return
 
         embedded = self.o.setdefault(EMBEDDED_KEY, {})
-        collected_embedded = CanonicalRels(embedded, self.curies, self.base_uri)
+        collected_embedded = CanonicalRels(embedded,
+                                           self.curies,
+                                           self.base_uri)
 
         if rel not in collected_embedded:
             if wrap:
@@ -727,12 +735,12 @@ class Document(object):
         if isinstance(curies, dict) and curies['name'] == name:
             del self.o[LINKS_KEY][self.draft.curies_rel]
             return
-        
+
         for i, curie in enumerate(curies):
             if curie['name'] == name:
                 del curies[i]
                 break
-                
+
             continue
 
     def __iter__(self):
@@ -741,11 +749,8 @@ class Document(object):
     def __eq__(self, other):
         if not isinstance(other, Document):
             return False
-        
+
         return self.as_object() == other.as_object()
 
     def __repr__(self):
         return "<Document %r>" % self.url()
-
-
-

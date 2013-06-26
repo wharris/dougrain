@@ -6,6 +6,7 @@ import unittest
 from dougrain import curie
 from dougrain import link
 
+
 class CurieTest(unittest.TestCase):
     def setUp(self):
         self.curies = curie.CurieCollection()
@@ -35,4 +36,3 @@ class CurieTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
