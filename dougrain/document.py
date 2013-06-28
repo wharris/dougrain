@@ -404,7 +404,7 @@ class Document(object):
 
     @mutator('_properties_cache')
     def delete_property(self, key):
-        """Remove an property from the document.
+        """Remove a property from the document.
 
         Calling code should use this method to remove properties on the
         document instead of modifying ``properties`` directly.
