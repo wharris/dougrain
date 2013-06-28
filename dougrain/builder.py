@@ -33,19 +33,19 @@ class Builder(object):
         else:
             new_link = dict(href=target.url(), **kwargs)
 
-        self.add_rel('_links', rel, new_link, wrap)
+        self._add_rel('_links', rel, new_link, wrap)
         return self
 
     def embed(self, rel, target, wrap=False):
         new_embed = target.as_object()
-        self.add_rel('_embedded', rel, new_embed, wrap)
+        self._add_rel('_embedded', rel, new_embed, wrap)
 
         if self.draft.automatic_link:
             self.add_link(rel, target, wrap)
 
         return self
 
-    def add_rel(self, key, rel, thing, wrap):
+    def _add_rel(self, key, rel, thing, wrap):
         self.o.setdefault(key, {})
 
         if wrap:
