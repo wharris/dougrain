@@ -14,7 +14,7 @@ Status
    :target: https://travis-ci.org/wharris/dougrain
 
 This is a pre-release version. It usually works pretty well, but the API may
-have have breaking changes in minor releases until version 1.0. The HAL
+have breaking changes in minor releases until version 1.0. The HAL
 specification is still being developed, so Dougrain is unlikely to have a
 stable API until HAL itself is stable.
 
