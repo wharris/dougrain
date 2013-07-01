@@ -71,10 +71,11 @@ Then run nose:
 Example
 -------
 
+``Document.from_object`` loads HAL data from a ``dict``:
+
 ::
 
     >>> from dougrain import Document
-    >>> import json
     >>> doc = Document.from_object(
     ...     {
     ...         "_embedded": {
@@ -95,7 +96,8 @@ Example
     ...             "curies": [
     ...                 {
     ...                     "href": "http://localhost/rels/{rel}", 
-    ...                     "name": "r"
+    ...                     "name": "r",
+    ...                     "templated": True
     ...                 }
     ...             ], 
     ...             "self": {
@@ -103,20 +105,70 @@ Example
     ...             },
     ...             "r:post": {
     ...                 "href": "/1"
+    ...             },
+    ...             "r:tags": {
+    ...                 "href": "/tags"
     ...             }
     ...         }
     ...     },
     ...     base_uri="http://localhost/")
+
+``Document`` instances provide methods to interrogate the document's
+properties, links, and embedded resources.
+
+::
+
     >>> doc.properties['welcome']
     'Hi there!'
+    >>> doc.links['r:tags'].url()
+    'http://localhost/tags'
     >>> doc.embedded['r:post'].url()
     'http://localhost/1'
-    >>> new_post = Document.empty()
-    >>> new_post.set_property("name", "Second child")
-    >>> new_post.add_link("self", "/2")
-    >>> new_post.as_object()
-    {'_links': {'self': {'href': '/2'}}, 'name': 'Second child'}
+
+Link relations can be specified using CURIEs or URI references:
+
+::
+
+    >>> doc.links['r:tags'].url()
+    'http://localhost/tags'
+    >>> doc.links['/rels/tags'].url()
+    'http://localhost/tags'
+
+``Builder`` provides a lightweight API for building HAL resources from scratch. Many of ``Builder``'s methods can be chained:
+
+::
+
+    >>> from dougrain import Builder
+    >>> new_post = (Builder("/2").set_property('name', "Second Child")
+    ...                          .add_curie('admin', "/adminrels/{rel}")
+    ...                          .add_link('admin:privacy', "/2/privacy"))
+    >>> import json
+    >>> print(json.dumps(new_post.as_object(), indent=2))
+    {
+      "_links": {
+        "curies": [
+          {
+            "href": "/adminrels/{rel}", 
+            "name": "admin", 
+            "templated": true
+          }
+        ], 
+        "self": {
+          "href": "/2"
+        }, 
+        "admin:privacy": {
+          "href": "/2/privacy"
+        }
+      }, 
+      "name": "Second Child"
+    }
+
+``Builder`` and ``Document`` can be used together. For example,
+``Document.embed`` will accept ``Builder`` instance:
+
+::
+
     >>> doc.embed('r:post', new_post)
-    >>> [post['name'] for post in doc.as_object()['_embedded']['r:post']]
+    >>> [post.properties['name'] for post in doc.embedded['/rels/post']]
     ['First child', 'Second child']
 
