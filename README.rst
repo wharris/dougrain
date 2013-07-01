@@ -149,7 +149,7 @@ Many of ``Builder``'s methods can be chained:
     }
 
 ``Builder`` and ``Document`` can be used together. For example,
-``Document.embed`` will accept ``Builder`` instance:
+``Document.embed`` will accept a ``Builder`` instance:
 
 ::
 
