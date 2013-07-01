@@ -52,22 +52,6 @@ You can install a local copy of the source in the usual way:
     $ pip install -r requirements.txt
     $ python setup.py install
 
-Testing
--------
-
-The easiest way to run the tests is to use nose, so install nose if you don't
-already have it:
-
-::
-
-    $ pip install nose
-
-Then run nose:
-
-::
-
-    $ nosetests
-
 Example
 -------
 
@@ -134,7 +118,8 @@ Link relations can be specified using CURIEs or URI references:
     >>> doc.links['/rels/tags'].url()
     'http://localhost/tags'
 
-``Builder`` provides a lightweight API for building HAL resources from scratch. Many of ``Builder``'s methods can be chained:
+``Builder`` provides a lightweight API for building HAL resources from scratch.
+Many of ``Builder``'s methods can be chained:
 
 ::
 
