@@ -15,10 +15,9 @@ class Builder(object):
     documents.
 
     Unlike ``dougrain.Document``, ``Builder`` provides no facilities for
-    interrogating or mutating existing documents and makes. ``Builder`` also
-    makes fewer sanity checks than ``dougrain.Document``, which makes it
-    considerably faster, but makes it more likely to produce invalid HAL
-    documents.
+    interrogating or mutating existing documents. ``Builder`` also makes fewer
+    sanity checks than ``dougrain.Document``, which makes it considerably
+    faster, but more likely to produce invalid HAL documents.
 
     """
 
