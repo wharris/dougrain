@@ -3,7 +3,9 @@
 # See the file license.txt for copying permission.
 
 import unittest
-from dougrain import Builder, Document, drafts
+from dougrain.builder import Builder
+from dougrain.document import Document
+import dougrain.drafts as drafts
 
 
 class BuilderTests(unittest.TestCase):
@@ -17,7 +19,7 @@ class InitialBuilderTests(BuilderTests):
     def testStartsWithNoProperties(self):
         doc = Document.from_object(self.builder.as_object(),
                                    base_uri="http://localhost")
-        self.assertEqual(doc.properties.keys(), [])
+        self.assertSequenceEqual(doc.properties.keys(), [])
 
     def testAlreadyHasSelfLink(self):
         doc = Document.from_object(self.builder.as_object(),
@@ -175,7 +177,12 @@ class HrefLinkBuilderTests(BuilderTests, LinkBuilderTestsMixin):
 
 class UnicodeHrefLinkBuilderTests(BuilderTests, LinkBuilderTestsMixin):
     def make_target(self, href):
-        return unicode(href)
+        return href.encode('utf-8').decode('utf-8')
+
+
+class BytesHrefLinkBuilderTests(BuilderTests, LinkBuilderTestsMixin):
+    def make_target(self, href):
+        return href.encode('utf-8').decode('utf-8').encode('utf-8')
 
 
 class BuilderLinkBuilderTests(BuilderTests, LinkBuilderTestsMixin):

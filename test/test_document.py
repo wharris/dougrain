@@ -3,7 +3,11 @@
 # See the file license.txt for copying permission.
 
 import unittest
-import dougrain
+import dougrain.drafts
+import dougrain.document
+import dougrain.builder
+dougrain.Document = dougrain.document.Document
+dougrain.Builder = dougrain.builder.Builder
 
 
 class ParseSimpleTestMixin(object):
@@ -420,7 +424,7 @@ class RelsTestMixin(object):
 
         urls = [x.url() for x in departments]
         urls.sort()
-        self.assertEquals(
+        self.assertEqual(
             ["http://localhost/departments/%d" % x for x in [1, 2, 3]],
             urls)
 
@@ -628,7 +632,7 @@ class AttributeMutationTests(unittest.TestCase):
 
         doc = dougrain.Document.empty()
 
-        for key, value in target_doc.properties.iteritems():
+        for key, value in target_doc.properties.items():
             doc.set_property(key, value)
 
         self.assertEquals(target_doc.as_object(), doc.as_object())

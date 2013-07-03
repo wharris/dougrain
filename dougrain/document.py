@@ -4,19 +4,27 @@
 Manipulating HAL documents.
 """
 
-import urlparse
+from __future__ import absolute_import
+
+try:
+    from urllib import parse as urlparse
+except ImportError:
+    import urlparse
+
 import itertools
-import UserDict
+from collections import Mapping
+
 from functools import wraps
 
-import curie
-import link
-from drafts import AUTO
-from drafts import LINKS_KEY
-from drafts import EMBEDDED_KEY
+import dougrain.link
+link = dougrain.link
+import dougrain.curie as curie
+from .drafts import AUTO
+from .drafts import LINKS_KEY
+from .drafts import EMBEDDED_KEY
 
 
-class CanonicalRels(UserDict.DictMixin, object):
+class CanonicalRels(Mapping, object):
     """Smart querying of link relationship types and link relationships.
 
     A ``CanonicalRels`` instance is a read-only dictionary-like object that
@@ -49,7 +57,7 @@ class CanonicalRels(UserDict.DictMixin, object):
 
         - ``rels``:        the relationships to be queried. ``rels`` should be
                            a sequence of ``(key, value)`` tuples or an object
-                           with an ``iteritems`` method that returns such a
+                           with an ``items`` method that returns such a
                            sequence (such as a dictionary). For each tuple in
                            the sequence, ``key`` is a string that identifies
                            the link relationship type and ``value`` is the
@@ -65,8 +73,8 @@ class CanonicalRels(UserDict.DictMixin, object):
                            will be called once with each target relationship.
 
         """
-        if hasattr(rels, 'iteritems'):
-            items = rels.iteritems()
+        if hasattr(rels, 'items'):
+            items = rels.items()
         else:
             items = rels
 
@@ -117,6 +125,12 @@ class CanonicalRels(UserDict.DictMixin, object):
         """
         return self.rels[self.canonical_key(key)][1]
 
+    def __iter__(self):
+        return iter(self.rels)
+
+    def __len__(self):
+        return len(self.rels)
+
     def __contains__(self, key):
         """Returns ``True`` if there are any link relationships for for
         ``self[key].``
@@ -131,10 +145,10 @@ class CanonicalRels(UserDict.DictMixin, object):
         encountered for the canonical key.
 
         """
-        return [original_key for original_key, _ in self.rels.itervalues()]
+        return [original_key for original_key, _ in self.rels.values()]
 
 
-class Relationships(UserDict.DictMixin, object):
+class Relationships(Mapping, object):
     """Merged view of relationships from a HAL document.
 
     Relationships, that is links and embedded resources, are presented as a
@@ -168,7 +182,7 @@ class Relationships(UserDict.DictMixin, object):
                         URLs.
 
         """
-        rels = itertools.chain(embedded.iteritems(), links.iteritems())
+        rels = itertools.chain(embedded.items(), links.items())
 
         existing_urls = set()
 
@@ -189,6 +203,12 @@ class Relationships(UserDict.DictMixin, object):
         if not isinstance(value, list):
             value = [value]
         return value
+
+    def __iter__(self):
+        return iter(self.rels)
+
+    def __len__(self):
+        return len(self.rels)
 
     def keys(self):
         return self.canonical_rels.keys()
@@ -265,7 +285,7 @@ class Document(object):
 
         links_json = self.o.get(LINKS_KEY, {})
 
-        for key, value in links_json.iteritems():
+        for key, value in links_json.items():
             if key == self.draft.curies_rel:
                 continue
             links[key] = link.Link.from_object(value, self.base_uri)
@@ -295,7 +315,7 @@ class Document(object):
 
     def embedded_cache(self):
         embedded = {}
-        for key, value in self.o.get(EMBEDDED_KEY, {}).iteritems():
+        for key, value in self.o.get(EMBEDDED_KEY, {}).items():
             embedded[key] = self.from_object(value,
                                              self.base_uri,
                                              self.curies)
@@ -510,7 +530,7 @@ class Document(object):
 
         links = self.o[LINKS_KEY]
         if rel is None:
-            for rel in links.keys():
+            for rel in list(links.keys()):
                 self.delete_link(rel, href)
             return
 
@@ -560,11 +580,8 @@ class Document(object):
         """
 
         if isinstance(o, list):
-            return map(lambda x: cls.from_object(x,
-                                                 base_uri,
-                                                 parent_curies,
-                                                 draft),
-                       o)
+            return [cls.from_object(x, base_uri, parent_curies, draft)
+                    for x in o]
 
         return cls(o, base_uri, parent_curies, draft)
 
@@ -676,7 +693,7 @@ class Document(object):
             return
 
         if rel is None:
-            for rel in self.o[EMBEDDED_KEY].keys():
+            for rel in list(self.o[EMBEDDED_KEY].keys()):
                 self.delete_embedded(rel, href)
             return
 

@@ -7,6 +7,10 @@ Creating HAL documents.
 from dougrain import drafts
 from dougrain import link
 
+try:
+    _ = unicode
+except NameError:
+    unicode = str
 
 class Builder(object):
     """Simplify creation of HAL documents.
@@ -135,6 +139,8 @@ class Builder(object):
           first link for the given ``rel``.
 
         """
+        if isinstance(target, bytes):
+            target = target.decode('utf-8')
         if isinstance(target, str) or isinstance(target, unicode):
             new_link = dict(href=target, **kwargs)
         else:

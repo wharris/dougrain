@@ -1,10 +1,13 @@
 # Copyright (c) 2013 Will Harris
 # See the file license.txt for copying permission.
 
-import urlparse
 import re
 import uritemplate
 
+try:
+    from urllib import parse as urlparse
+except ImportError:
+    import urlparse
 
 def extract_variables(href):
     """Return a list of variable names used in a URI template."""
@@ -127,7 +130,7 @@ class Link(object):
             if len(o) == 1:
                 return cls.from_object(o[0], base_uri)
 
-            return map(lambda x: cls.from_object(x, base_uri), o)
+            return [cls.from_object(x, base_uri) for x in o]
 
         return cls(o, base_uri)
 
