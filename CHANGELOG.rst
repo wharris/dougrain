@@ -1,6 +1,22 @@
 Change Log
 ----------
 
+0.5
+===
+
+* Compatibility with Draft 5 of the JSON HAL standard and backward
+  compatibility with Draft 4 and Draft 3.
+* New ``Builder``, for creating HAL resources from scratch. ``Builder`` gives
+  much better performance than ``Document`` when building large resources.
+* Option to force-wrap links and embedded resources in an array.
+* Slight performance improvements to ``Document``'s mutation methods.
+
+0.4
+===
+
+* Compatibility with Draft 4 of the JSON HAL standard.
+* Backward compatibility with Draft 3.
+
 0.3
 ===
 
