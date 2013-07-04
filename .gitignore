@@ -4,4 +4,4 @@ MANIFEST
 dist/
 *.egg-info/
 TODO.txt
-.venv
+.venv*
