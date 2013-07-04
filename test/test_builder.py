@@ -3,9 +3,9 @@
 # See the file license.txt for copying permission.
 
 import unittest
-from dougrain.builder import Builder
-from dougrain.document import Document
-import dougrain.drafts as drafts
+from dougrain import Builder
+from dougrain import Document
+from dougrain import drafts
 
 
 class BuilderTests(unittest.TestCase):

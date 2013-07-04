@@ -3,12 +3,7 @@
 # See the file license.txt for copying permission.
 
 import unittest
-import dougrain.drafts
-import dougrain.document
-import dougrain.builder
-dougrain.Document = dougrain.document.Document
-dougrain.Builder = dougrain.builder.Builder
-
+import dougrain
 
 class ParseSimpleTestMixin(object):
     def setUp(self):

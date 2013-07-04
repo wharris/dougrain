@@ -3,11 +3,11 @@
 # See the file license.txt for copying permission.
 
 import unittest
-from dougrain.link import Link
+from dougrain import link
 
 class TestParseAbsoluteLink(unittest.TestCase):
     def setUp(self):
-        self.link = Link(
+        self.link = link.Link(
             {'href': "http://localhost/"},
             None)
 
@@ -26,7 +26,7 @@ class TestParseAbsoluteLink(unittest.TestCase):
 
 class TestParseRelativeLink(unittest.TestCase):
     def setUp(self):
-        self.link = Link(
+        self.link = link.Link(
             {'href': "/foo"},
             "http://localhost/")
 
@@ -45,7 +45,7 @@ class TestParseRelativeLink(unittest.TestCase):
 
 class TestParseAdditionalAttributes(unittest.TestCase):
     def setUp(self):
-        self.link = Link(
+        self.link = link.Link(
             {
                 'href': "/foo",
                 'name': "bar",
@@ -79,7 +79,7 @@ class TestParseAdditionalAttributes(unittest.TestCase):
 
 class TestExpandTemplatedLink(unittest.TestCase):
     def setUp(self):
-        self.link = Link(
+        self.link = link.Link(
             {
                 'href': "/foo/{arg1}",
                 'templated': True
@@ -103,7 +103,7 @@ class TestExpandTemplatedLink(unittest.TestCase):
 
 class TestDoNotExpandNonTemplateLinks(unittest.TestCase):
     def setUp(self):
-        self.link = Link(
+        self.link = link.Link(
             {
                 'href': "/foo/{arg1}"
             },
@@ -129,7 +129,7 @@ class TestExtractVariablesFromLink(unittest.TestCase):
         if isinstance(variables, str):
             variables = variables.split()
 
-        lnk = Link(
+        lnk = link.Link(
             {
                 'href': href,
                 'templated': True
@@ -215,7 +215,7 @@ class TestExtractVariablesFromLink(unittest.TestCase):
 
 class TestIteration(unittest.TestCase):
     def testASingleLinkCanBeIterated(self):
-        the_link = Link({"href": "/"}, "http://localhost/")
+        the_link = link.Link({"href": "/"}, "http://localhost/")
         count = 0
         for a_link in the_link:
             count += 1
