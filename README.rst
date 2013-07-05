@@ -21,7 +21,7 @@ stable API until HAL itself is stable.
 Compatibility
 -------------
 
-Drafts **3**, **4**, and **5**.
+JSON HAL drafts **3**, **4**, and **5**. Python **2.7**, **3.2**, and **3.3**.
 
 This version conforms to `JSON Hypermedia API Language Internet Draft 5
 <http://tools.ietf.org/html/draft-kelly-json-hal-05>`_,
@@ -31,6 +31,9 @@ but it can also work with JSON from
 The draft version can be explicitly selected when the document is constructed,
 but the default behavior is for documents to automatically detect which draft
 to use.
+
+This version is tested on Python 2.7, including PyPy, Python 3.2, and
+Python 3.3.
 
 Installation
 ------------
