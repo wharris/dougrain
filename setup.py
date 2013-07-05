@@ -18,7 +18,10 @@ setup(
     packages=['dougrain'],
     provides=['dougrain'],
     long_description=open("README.rst").read(),
-    install_requires=['uritemplate >= 0.5.1'],
+    install_requires=['uritemplate'],
+    dependency_links=["https://github.com/uri-templates/uritemplate-py/"
+                      "archive/d11b6f74a27804fb7d0de45d26bdbd007925913a.zip"
+                      "#egg=uritemplate"],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
