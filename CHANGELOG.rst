@@ -1,6 +1,11 @@
 Change Log
 ----------
 
+0.5.1
+=====
+
+* Compatibility with Python 3.
+
 0.5
 ===
 
