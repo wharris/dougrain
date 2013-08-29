@@ -1,1 +1,1 @@
--e git+https://github.com/uri-templates/uritemplate-py.git@d11b#egg=uritemplate-dev
+uritemplate >= 0.6
