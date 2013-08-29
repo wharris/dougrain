@@ -12,6 +12,7 @@ try:
 except NameError:
     unicode = str
 
+
 class Builder(object):
     """Simplify creation of HAL documents.
 

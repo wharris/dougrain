@@ -5,6 +5,7 @@
 import unittest
 import dougrain
 
+
 class ParseSimpleTestMixin(object):
     def setUp(self):
         self.doc = dougrain.Document.from_object({"name": "David Bowman"},

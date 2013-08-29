@@ -5,6 +5,7 @@
 import unittest
 from dougrain import link
 
+
 class TestParseAbsoluteLink(unittest.TestCase):
     def setUp(self):
         self.link = link.Link(

@@ -9,6 +9,7 @@ try:
 except ImportError:
     import urlparse
 
+
 def extract_variables(href):
     """Return a list of variable names used in a URI template."""
 
